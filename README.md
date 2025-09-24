@@ -102,6 +102,7 @@ All protected endpoints require `Authorization: Bearer <token>` header.
 
 - `GET /api/health` - Health check
 - `POST /api/auth/login` - Login with email/password
+- `POST /api/auth/invite` - Invite new user to tenant (Admin only)
 - `GET /api/notes` - List tenant's notes
 - `POST /api/notes` - Create a note (subscription gated)
 - `GET /api/notes/:id` - Get specific note
@@ -118,7 +119,7 @@ All protected endpoints require `Authorization: Bearer <token>` header.
 ### Role-based Access
 
 - **Members**: Can CRUD notes within their tenant
-- **Admins**: All member permissions + can upgrade tenant to Pro
+- **Admins**: All member permissions + can invite users and upgrade tenant to Pro
 
 ## Security
 

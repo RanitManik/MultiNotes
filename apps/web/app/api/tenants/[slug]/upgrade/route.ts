@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, createToken } from "@/lib/auth";
 
 export async function POST(
   request: NextRequest,
@@ -38,7 +38,36 @@ export async function POST(
       data: { plan: "pro" },
     });
 
-    return NextResponse.json({ message: "Upgraded to Pro" });
+    // Return updated tenant info
+    const updatedTenant = await prisma.tenant.findUnique({
+      where: { slug },
+      select: { slug: true, name: true, plan: true },
+    });
+
+    // Get updated user info for new token
+    const updatedUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { tenant: true },
+    });
+
+    if (!updatedUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const newToken = createToken({
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      tenantId: updatedUser.tenant_id,
+      tenantSlug: updatedUser.tenant.slug,
+      tenantPlan: updatedUser.tenant.plan,
+    });
+
+    return NextResponse.json({ 
+      message: "Upgraded to Pro",
+      tenant: updatedTenant,
+      token: newToken
+    });
   } catch (error) {
     console.error("Upgrade error:", error);
     return NextResponse.json(

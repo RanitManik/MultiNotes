@@ -44,6 +44,7 @@ import {
   FileText,
   Crown,
   AlertTriangle,
+  UserPlus,
 } from "lucide-react";
 import { useOptimisticNotes } from "@/hooks/useOptimisticNotes";
 import { toast } from "sonner";
@@ -66,8 +67,11 @@ export default function NotesPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showInviteForm, setShowInviteForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newContent, setNewContent] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
   const [error, setError] = useState("");
   const router = useRouter();
 
@@ -204,20 +208,67 @@ export default function NotesPage() {
     };
 
     try {
-      await toast.promise(upgradeAPI(), {
+      const toastResult = await toast.promise(upgradeAPI(), {
         loading: "Upgrading to Pro plan...",
         success: "Successfully upgraded to Pro plan!",
         error: err => err.message || "Upgrade failed",
       });
 
+      const response = await toastResult.unwrap();
+
+      // Get the updated tenant info from the response
+      const data = await response.json();
+      
+      // Update token with new one containing updated tenant plan
+      localStorage.setItem("token", data.token);
+      
+      // Decode the new token to update user state (same as in useEffect)
+      const parts = data.token.split(".");
+      if (parts.length === 3 && parts[1]) {
+        const payload = JSON.parse(atob(parts[1]));
+        setUser({
+          role: payload.role,
+          tenantSlug: payload.tenantSlug,
+          tenantPlan: payload.tenantPlan,
+        });
+      }
+      
       // Refresh notes to potentially allow more
       fetchNotes();
-      // Update user plan to pro
-      setUser(prev => (prev ? { ...prev, tenantPlan: "pro" } : null));
       setError("");
     } catch (err) {
       // Error is already handled by toast.promise
       console.error("Upgrade failed:", err);
+    }
+  };
+
+  const handleInviteUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const response = await fetch("/api/auth/invite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast.success(`User ${inviteEmail} invited successfully!`);
+        setShowInviteForm(false);
+        setInviteEmail("");
+        setInviteRole("member");
+      } else {
+        setError(data.error || "Failed to invite user");
+      }
+    } catch (err) {
+      setError("Network error");
     }
   };
 
@@ -335,6 +386,62 @@ export default function NotesPage() {
               </form>
             </DialogContent>
           </Dialog>
+
+          {user?.role === "admin" && (
+            <Dialog open={showInviteForm} onOpenChange={setShowInviteForm}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex items-center">
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Invite User
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Invite New User</DialogTitle>
+                  <DialogDescription>
+                    Add a new user to your tenant organization.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleInviteUser} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="inviteEmail">Email</Label>
+                    <Input
+                      id="inviteEmail"
+                      type="email"
+                      placeholder="Enter user email"
+                      value={inviteEmail}
+                      onChange={e => setInviteEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="inviteRole">Role</Label>
+                    <select
+                      id="inviteRole"
+                      value={inviteRole}
+                      onChange={e =>
+                        setInviteRole(e.target.value as "admin" | "member")
+                      }
+                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    >
+                      <option value="member">Member</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowInviteForm(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit">Invite User</Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+          )}
 
           {canUpgrade && (
             <Button

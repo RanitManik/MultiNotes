@@ -102,7 +102,6 @@ All protected endpoints require `Authorization: Bearer <token>` header.
 
 - `GET /api/health` - Health check
 - `POST /api/auth/login` - Login with email/password
-- `POST /api/auth/signup` - Sign up new user (requires tenant slug and role)
 - `GET /api/notes` - List tenant's notes
 - `POST /api/notes` - Create a note (subscription gated)
 - `GET /api/notes/:id` - Get specific note

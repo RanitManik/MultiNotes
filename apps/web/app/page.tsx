@@ -147,8 +147,10 @@ export default function LoginPage() {
           </form>
           <div className="mt-6 text-center text-sm text-gray-600">
             <p>Test accounts available:</p>
-            <p>Acme: admin@acme.com / password123</p>
-            <p>Globex: user@globex.com / password123</p>
+            <p>Acme: admin@acme.test / password</p>
+            <p>Acme: user@acme.test / password</p>
+            <p>Globex: admin@globex.test / password</p>
+            <p>Globex: user@globex.test / password</p>
           </div>
         </CardContent>
       </Card>

@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = requireAuth(request);
   if (!user) {
@@ -12,9 +12,10 @@ export async function GET(
   }
 
   try {
+    const { id } = await params;
     const note = await prisma.note.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         tenant_id: user.tenantId,
       },
       include: { author: { select: { email: true } } },
@@ -36,7 +37,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = requireAuth(request);
   if (!user) {
@@ -55,7 +56,7 @@ export async function PUT(
 
     const note = await prisma.note.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         tenant_id: user.tenantId,
       },
     });
@@ -65,7 +66,7 @@ export async function PUT(
     }
 
     const updatedNote = await prisma.note.update({
-      where: { id: params.id },
+      where: { id: (await params).id },
       data: { title, content },
       include: { author: { select: { email: true } } },
     });
@@ -82,7 +83,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const user = requireAuth(request);
   if (!user) {
@@ -92,7 +93,7 @@ export async function DELETE(
   try {
     const note = await prisma.note.findFirst({
       where: {
-        id: params.id,
+        id: (await params).id,
         tenant_id: user.tenantId,
       },
     });
@@ -102,7 +103,7 @@ export async function DELETE(
     }
 
     await prisma.note.delete({
-      where: { id: params.id },
+      where: { id: (await params).id },
     });
 
     return NextResponse.json({ message: "Note deleted" });

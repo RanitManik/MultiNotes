@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   const user = requireAuth(request);
   if (!user) {
@@ -18,13 +18,15 @@ export async function POST(
     );
   }
 
-  if (user.tenantSlug !== params.slug) {
+  const { slug } = await params;
+
+  if (user.tenantSlug !== slug) {
     return NextResponse.json({ error: "Tenant mismatch" }, { status: 403 });
   }
 
   try {
     const tenant = await prisma.tenant.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
     });
 
     if (!tenant) {
@@ -32,7 +34,7 @@ export async function POST(
     }
 
     await prisma.tenant.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: { plan: "pro" },
     });
 

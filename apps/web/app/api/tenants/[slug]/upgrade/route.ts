@@ -63,10 +63,10 @@ export async function POST(
       tenantPlan: updatedUser.tenant.plan,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       message: "Upgraded to Pro",
       tenant: updatedTenant,
-      token: newToken
+      token: newToken,
     });
   } catch (error) {
     console.error("Upgrade error:", error);

@@ -218,10 +218,10 @@ export default function NotesPage() {
 
       // Get the updated tenant info from the response
       const data = await response.json();
-      
+
       // Update token with new one containing updated tenant plan
       localStorage.setItem("token", data.token);
-      
+
       // Decode the new token to update user state (same as in useEffect)
       const parts = data.token.split(".");
       if (parts.length === 3 && parts[1]) {
@@ -232,7 +232,7 @@ export default function NotesPage() {
           tenantPlan: payload.tenantPlan,
         });
       }
-      
+
       // Refresh notes to potentially allow more
       fetchNotes();
       setError("");

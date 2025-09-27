@@ -13,6 +13,7 @@ import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Textarea } from "@workspace/ui/components/textarea";
 import { Badge } from "@workspace/ui/components/badge";
+import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import {
   Dialog,
@@ -335,10 +336,10 @@ export default function NotesPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-blue-600" />
-          <p className="text-gray-600">Loading your notes...</p>
+          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground">Loading your notes...</p>
         </div>
       </div>
     );
@@ -348,18 +349,18 @@ export default function NotesPage() {
     user?.role === "admin" && user?.tenantPlan === "free" && notes.length >= 3;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-background min-h-screen">
       {/* Header */}
-      <header className="border-b bg-white shadow-sm">
+      <header className="bg-card border-b shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center space-x-3">
-              <FileText className="h-8 w-8 text-blue-600" />
+              <FileText className="text-primary h-8 w-8" />
               <div>
-                <h1 className="text-xl font-semibold text-gray-900">
+                <h1 className="text-foreground text-xl font-semibold">
                   MultiNotes
                 </h1>
-                <p className="text-sm text-gray-500">
+                <p className="text-muted-foreground text-sm">
                   Tenant: {user?.tenantSlug}
                 </p>
               </div>
@@ -373,6 +374,7 @@ export default function NotesPage() {
               >
                 {user?.tenantPlan === "pro" ? "Pro Plan" : "Free Plan"}
               </Badge>
+              <ThemeToggle />
               <Button onClick={handleLogout} variant="outline" size="sm">
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
@@ -520,7 +522,7 @@ export default function NotesPage() {
                       onChange={e =>
                         setInviteRole(e.target.value as "admin" | "member")
                       }
-                      className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="border-input bg-background focus:border-ring focus:ring-ring w-full rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1"
                     >
                       <option value="member">Member</option>
                       <option value="admin">Admin</option>
@@ -557,11 +559,11 @@ export default function NotesPage() {
         {notes.length === 0 ? (
           <Card className="py-12 text-center">
             <CardContent>
-              <FileText className="mx-auto mb-4 h-12 w-12 text-gray-400" />
-              <h3 className="mb-2 text-lg font-medium text-gray-900">
+              <FileText className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+              <h3 className="text-foreground mb-2 text-lg font-medium">
                 No notes yet
               </h3>
-              <p className="mb-6 text-gray-500">
+              <p className="text-muted-foreground mb-6">
                 Get started by creating your first note.
               </p>
               <Button onClick={() => setShowCreateForm(true)}>
@@ -577,8 +579,8 @@ export default function NotesPage() {
                 key={note.id}
                 className={`group border-l-4 transition-all duration-200 hover:shadow-lg ${
                   note.isOptimistic
-                    ? "animate-pulse border-l-blue-500 bg-blue-50/50"
-                    : "border-l-gray-200 hover:border-l-blue-400"
+                    ? "border-l-primary bg-primary/5 animate-pulse"
+                    : "border-l-border hover:border-l-primary"
                 }`}
               >
                 <CardHeader className="pb-3">
@@ -587,7 +589,7 @@ export default function NotesPage() {
                       <CardTitle className="line-clamp-2 flex items-center gap-2 text-lg">
                         {note.title}
                         {note.isOptimistic && (
-                          <div className="flex items-center gap-1 text-xs font-normal text-blue-600">
+                          <div className="text-primary flex items-center gap-1 text-xs font-normal">
                             <Loader2 className="h-3 w-3 animate-spin" />
                             Creating...
                           </div>
@@ -599,7 +601,7 @@ export default function NotesPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-blue-600 opacity-0 transition-opacity hover:bg-blue-50 hover:text-blue-700 group-hover:opacity-100"
+                          className="text-primary hover:bg-primary/10 hover:text-primary opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={() => handleEditNote(note)}
                         >
                           <Edit className="h-4 w-4" />
@@ -609,7 +611,7 @@ export default function NotesPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              className="text-red-600 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-700 group-hover:opacity-100"
+                              className="text-destructive hover:bg-destructive/10 hover:text-destructive opacity-0 transition-opacity group-hover:opacity-100"
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -639,16 +641,14 @@ export default function NotesPage() {
                 </CardHeader>
                 <CardContent>
                   <p
-                    className={`mb-4 line-clamp-3 ${note.isOptimistic ? "text-gray-600" : "text-gray-700"}`}
+                    className={`mb-4 line-clamp-3 ${note.isOptimistic ? "text-muted-foreground" : "text-foreground"}`}
                   >
                     {note.content}
                   </p>
-                  <div className="flex items-center justify-between text-sm text-gray-500">
+                  <div className="text-muted-foreground flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-1">
                       <User className="h-3 w-3" />
-                      <span
-                        className={note.isOptimistic ? "text-blue-600" : ""}
-                      >
+                      <span className={note.isOptimistic ? "text-primary" : ""}>
                         {note.author.email}
                       </span>
                     </div>

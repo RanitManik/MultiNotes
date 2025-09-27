@@ -77,20 +77,20 @@ export default function LoginPage() {
 
   if (checkingAuth) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br">
         <div className="text-center">
-          <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-blue-600" />
-          <p className="text-gray-600">Checking authentication...</p>
+          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground">Checking authentication...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-gray-900">
+          <CardTitle className="text-foreground text-2xl font-bold">
             Welcome to MultiNotes
           </CardTitle>
           <CardDescription>
@@ -145,7 +145,7 @@ export default function LoginPage() {
               )}
             </Button>
           </form>
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="text-muted-foreground mt-6 text-center text-sm">
             <p>Test accounts available:</p>
             <p>Acme: admin@acme.test / password</p>
             <p>Acme: user@acme.test / password</p>

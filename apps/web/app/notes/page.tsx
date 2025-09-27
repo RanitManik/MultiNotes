@@ -73,9 +73,14 @@ export default function NotesPage() {
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
   const [error, setError] = useState("");
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editContent, setEditContent] = useState("");
   const router = useRouter();
 
-  const { notes, addNote, removeNote, updateNotes } = useOptimisticNotes();
+  const { notes, addNote, removeNote, updateNote, updateNotes } =
+    useOptimisticNotes();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -242,6 +247,57 @@ export default function NotesPage() {
     }
   };
 
+  const handleEditNote = (note: Note) => {
+    setEditingNote(note);
+    setEditTitle(note.title);
+    setEditContent(note.content);
+    setShowEditForm(true);
+  };
+
+  const handleUpdateNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingNote) return;
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const noteData = { title: editTitle, content: editContent };
+
+    // Close dialog and clear form immediately for optimistic UX
+    setShowEditForm(false);
+    setEditingNote(null);
+    setEditTitle("");
+    setEditContent("");
+    setError("");
+
+    const updateNoteAPI = async (
+      id: string,
+      data: { title: string; content: string }
+    ) => {
+      const response = await fetch(`/api/notes/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update note");
+      }
+
+      return await response.json();
+    };
+
+    try {
+      await updateNote(editingNote.id, noteData, updateNoteAPI);
+    } catch (err) {
+      // Error is already handled by the hook
+      console.error("Update note failed:", err);
+    }
+  };
+
   const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
@@ -387,6 +443,48 @@ export default function NotesPage() {
             </DialogContent>
           </Dialog>
 
+          <Dialog open={showEditForm} onOpenChange={setShowEditForm}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit Note</DialogTitle>
+                <DialogDescription>Update your note details.</DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleUpdateNote} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="editTitle">Title</Label>
+                  <Input
+                    id="editTitle"
+                    placeholder="Enter note title"
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="editContent">Content</Label>
+                  <Textarea
+                    id="editContent"
+                    placeholder="Write your note content here..."
+                    value={editContent}
+                    onChange={e => setEditContent(e.target.value)}
+                    rows={6}
+                    required
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowEditForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">Update Note</Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+
           {user?.role === "admin" && (
             <Dialog open={showInviteForm} onOpenChange={setShowInviteForm}>
               <DialogTrigger asChild>
@@ -497,35 +595,45 @@ export default function NotesPage() {
                       </CardTitle>
                     </div>
                     {!note.isOptimistic && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-700 group-hover:opacity-100"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Note</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{note.title}"?
-                              This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteNote(note.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-blue-600 opacity-0 transition-opacity hover:bg-blue-50 hover:text-blue-700 group-hover:opacity-100"
+                          onClick={() => handleEditNote(note)}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 opacity-0 transition-opacity hover:bg-red-50 hover:text-red-700 group-hover:opacity-100"
                             >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Note</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Are you sure you want to delete "{note.title}"?
+                                This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteNote(note.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     )}
                   </div>
                 </CardHeader>

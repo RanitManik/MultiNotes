@@ -93,10 +93,65 @@ export function useOptimisticNotes(initialNotes: OptimisticNote[] = []) {
     setNotes(newNotes);
   }, []);
 
+  const updateNote = useCallback(
+    async (
+      noteId: string,
+      noteData: { title: string; content: string },
+      updateFn: (
+        id: string,
+        data: { title: string; content: string }
+      ) => Promise<OptimisticNote>
+    ) => {
+      // Find the original note
+      const originalNote = notes.find(note => note.id === noteId);
+      if (!originalNote) return;
+
+      // Create optimistic updated note
+      const optimisticNote: OptimisticNote = {
+        ...originalNote,
+        title: noteData.title,
+        content: noteData.content,
+        isOptimistic: true,
+      };
+
+      // Update in UI immediately
+      setNotes(prev =>
+        prev.map(note => (note.id === noteId ? optimisticNote : note))
+      );
+
+      try {
+        const toastResult = await toast.promise(updateFn(noteId, noteData), {
+          loading: "Updating note...",
+          success: "Note updated successfully!",
+          error: err => err.message || "Failed to update note",
+        });
+
+        const result = (toastResult as any)?.unwrap
+          ? await (toastResult as any).unwrap()
+          : toastResult;
+
+        // Replace optimistic note with real data
+        setNotes(prev =>
+          prev.map(note => (note.id === noteId ? result : note))
+        );
+
+        return result;
+      } catch (error) {
+        // Revert to original note on error
+        setNotes(prev =>
+          prev.map(note => (note.id === noteId ? originalNote : note))
+        );
+        throw error;
+      }
+    },
+    [notes]
+  );
+
   return {
     notes,
     addNote,
     removeNote,
     updateNotes,
+    updateNote,
   };
 }

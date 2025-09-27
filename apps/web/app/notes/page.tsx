@@ -325,6 +325,7 @@ export default function NotesPage() {
         setError(data.error || "Failed to invite user");
       }
     } catch (err) {
+      console.error(err);
       setError("Network error");
     }
   };
@@ -620,8 +621,9 @@ export default function NotesPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Note</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete &quot;{note.title}&quot;?
-                                This action cannot be undone.
+                                Are you sure you want to delete &quot;
+                                {note.title}&quot;? This action cannot be
+                                undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
@@ -674,8 +676,8 @@ export default function NotesPage() {
             <Alert className="mt-8">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                You&apos;ve reached the free plan limit of 3 notes. Ask an admin to
-                upgrade to Pro for unlimited notes.
+                You&apos;ve reached the free plan limit of 3 notes. Ask an admin
+                to upgrade to Pro for unlimited notes.
               </AlertDescription>
             </Alert>
           )}

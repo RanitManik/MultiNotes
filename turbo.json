@@ -13,11 +13,45 @@
       "inputs": ["prisma/schema.prisma"],
       "outputs": ["node_modules/.prisma/**"]
     },
+    "db:migrate": {
+      "cache": false,
+      "inputs": ["prisma/migrations/**"]
+    },
+    "db:migrate:prod": {
+      "cache": false,
+      "inputs": ["prisma/migrations/**"]
+    },
+    "db:seed": {
+      "cache": false,
+      "inputs": ["prisma/seed.ts"]
+    },
+    "db:setup": {
+      "dependsOn": ["db:migrate:prod", "db:seed"]
+    },
     "lint": {
       "dependsOn": ["^lint"]
     },
     "check-types": {
       "dependsOn": ["^check-types"]
+    },
+    "typecheck": {
+      "dependsOn": ["^typecheck"]
+    },
+    "test": {
+      "dependsOn": ["^test"],
+      "inputs": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"]
+    },
+    "test:unit": {
+      "dependsOn": ["^test:unit"],
+      "inputs": ["**/__tests__/**", "**/*.test.*", "**/*.spec.*"]
+    },
+    "test:integration": {
+      "dependsOn": ["^test:integration"],
+      "inputs": ["**/integration/**", "**/*.test.*", "**/*.spec.*"]
+    },
+    "test:watch": {
+      "cache": false,
+      "persistent": true
     },
     "dev": {
       "cache": false,

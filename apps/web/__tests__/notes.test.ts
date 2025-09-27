@@ -1,13 +1,13 @@
-import { testApiHandler } from 'next-test-api-route-handler';
-import * as appHandler from '../app/api/notes/route';
+import { testApiHandler } from "next-test-api-route-handler";
+import * as appHandler from "../app/api/notes/route";
 
 // Mock auth
-jest.mock('@/lib/auth', () => ({
+jest.mock("@/lib/auth", () => ({
   requireAuth: jest.fn(),
 }));
 
 // Mock prisma
-jest.mock('@/lib/db', () => ({
+jest.mock("@/lib/db", () => ({
   prisma: {
     note: {
       findMany: jest.fn(),
@@ -20,30 +20,30 @@ jest.mock('@/lib/db', () => ({
   },
 }));
 
-import { requireAuth } from '@/lib/auth';
-import { prisma } from '@/lib/db';
+import { requireAuth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 
-describe('Notes API', () => {
+describe("Notes API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('GET /api/notes', () => {
-    it('should return 401 for unauthenticated user', async () => {
+  describe("GET /api/notes", () => {
+    it("should return 401 for unauthenticated user", async () => {
       (requireAuth as jest.Mock).mockReturnValue(null);
 
       await testApiHandler({
         appHandler,
         test: async ({ fetch }) => {
-          const res = await fetch({ method: 'GET' });
+          const res = await fetch({ method: "GET" });
           expect(res.status).toBe(401);
           const json = await res.json();
-          expect(json.error).toBe('Unauthorized');
+          expect(json.error).toBe("Unauthorized");
         },
       });
     });
 
-    it('should return notes for authenticated user', async () => {
+    it("should return notes for authenticated user", async () => {
       (requireAuth as jest.Mock).mockReturnValue({
         id: 1,
         tenantId: 1,
@@ -51,44 +51,44 @@ describe('Notes API', () => {
       (prisma.note.findMany as jest.Mock).mockResolvedValue([
         {
           id: 1,
-          title: 'Test Note',
-          content: 'Test content',
-          author: { email: 'user@example.com' },
+          title: "Test Note",
+          content: "Test content",
+          author: { email: "user@example.com" },
         },
       ]);
 
       await testApiHandler({
         appHandler,
         test: async ({ fetch }) => {
-          const res = await fetch({ method: 'GET' });
+          const res = await fetch({ method: "GET" });
           expect(res.status).toBe(200);
           const json = await res.json();
           expect(json).toHaveLength(1);
-          expect(json[0].title).toBe('Test Note');
+          expect(json[0].title).toBe("Test Note");
         },
       });
     });
   });
 
-  describe('POST /api/notes', () => {
-    it('should return 401 for unauthenticated user', async () => {
+  describe("POST /api/notes", () => {
+    it("should return 401 for unauthenticated user", async () => {
       (requireAuth as jest.Mock).mockReturnValue(null);
 
       await testApiHandler({
         appHandler,
         test: async ({ fetch }) => {
           const res = await fetch({
-            method: 'POST',
-            body: JSON.stringify({ title: 'Test', content: 'Content' }),
+            method: "POST",
+            body: JSON.stringify({ title: "Test", content: "Content" }),
           });
           expect(res.status).toBe(401);
           const json = await res.json();
-          expect(json.error).toBe('Unauthorized');
+          expect(json.error).toBe("Unauthorized");
         },
       });
     });
 
-    it('should return 400 for missing title', async () => {
+    it("should return 400 for missing title", async () => {
       (requireAuth as jest.Mock).mockReturnValue({
         id: 1,
         tenantId: 1,
@@ -98,24 +98,24 @@ describe('Notes API', () => {
         appHandler,
         test: async ({ fetch }) => {
           const res = await fetch({
-            method: 'POST',
-            body: JSON.stringify({ content: 'Content' }),
+            method: "POST",
+            body: JSON.stringify({ content: "Content" }),
           });
           expect(res.status).toBe(400);
           const json = await res.json();
-          expect(json.error).toBe('Title and content required');
+          expect(json.error).toBe("Title and content required");
         },
       });
     });
 
-    it('should return 403 for free plan limit reached', async () => {
+    it("should return 403 for free plan limit reached", async () => {
       (requireAuth as jest.Mock).mockReturnValue({
         id: 1,
         tenantId: 1,
       });
       (prisma.tenant.findUnique as jest.Mock).mockResolvedValue({
         id: 1,
-        plan: 'free',
+        plan: "free",
       });
       (prisma.note.count as jest.Mock).mockResolvedValue(3);
 
@@ -123,43 +123,46 @@ describe('Notes API', () => {
         appHandler,
         test: async ({ fetch }) => {
           const res = await fetch({
-            method: 'POST',
-            body: JSON.stringify({ title: 'Test', content: 'Content' }),
+            method: "POST",
+            body: JSON.stringify({ title: "Test", content: "Content" }),
           });
           expect(res.status).toBe(403);
           const json = await res.json();
-          expect(json.error).toBe('Free plan limit reached');
+          expect(json.error).toBe("Free plan limit reached");
         },
       });
     });
 
-    it('should create note successfully', async () => {
+    it("should create note successfully", async () => {
       (requireAuth as jest.Mock).mockReturnValue({
         id: 1,
         tenantId: 1,
       });
       (prisma.tenant.findUnique as jest.Mock).mockResolvedValue({
         id: 1,
-        plan: 'pro',
+        plan: "pro",
       });
       (prisma.note.create as jest.Mock).mockResolvedValue({
         id: 1,
-        title: 'Test Note',
-        content: 'Test content',
-        author: { email: 'user@example.com' },
+        title: "Test Note",
+        content: "Test content",
+        author: { email: "user@example.com" },
       });
 
       await testApiHandler({
         appHandler,
         test: async ({ fetch }) => {
           const res = await fetch({
-            method: 'POST',
-            body: JSON.stringify({ title: 'Test Note', content: 'Test content' }),
+            method: "POST",
+            body: JSON.stringify({
+              title: "Test Note",
+              content: "Test content",
+            }),
           });
           expect(res.status).toBe(201);
           const json = await res.json();
-          expect(json.title).toBe('Test Note');
-          expect(json.content).toBe('Test content');
+          expect(json.title).toBe("Test Note");
+          expect(json.content).toBe("Test content");
         },
       });
     });

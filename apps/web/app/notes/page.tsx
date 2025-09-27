@@ -989,13 +989,6 @@ function UpgradeFooter({ tenant, onUpgrade, user, onLogout }: any) {
           onUpgrade={onUpgrade}
         />
       </div>
-
-      {tenant?.plan === "FREE" && (
-        <Button size="sm" onClick={onUpgrade} variant="secondary">
-          <Sparkles className="mr-1.5 size-4" />
-          Upgrade
-        </Button>
-      )}
     </div>
   );
 }

@@ -1,15 +1,120 @@
-# MultiNotes - Multi-Tenant SaaS Notes App
+# MultiNotes
 
-A multi-tenant SaaS application for managing notes wi### Endpoints
+A multi-tenant SaaS notes application with role-based access control and subscription management.
+
+## Features
+
+- **Multi-tenant architecture** with complete data isolation
+- **Role-based permissions** (Admin/Member)
+- **Subscription plans** (Free: 3 notes, Pro: unlimited)
+- **Rich text editor** with TipTap
+- **Real-time updates** with optimistic UI
+- **Dark/light theme** support
+- **Comprehensive testing** (Unit, Integration, E2E)
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 + React 19
+- **Backend**: Next.js API Routes
+- **Database**: PostgreSQL + Prisma ORM
+- **Auth**: JWT with bcrypt
+- **UI**: Tailwind CSS + shadcn/ui
+- **Testing**: Jest + Playwright
+- **Deployment**: Vercel
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 20+
+- PostgreSQL database
+- pnpm
+
+### Setup
+
+```bash
+# Install dependencies
+pnpm install
+
+# Setup database
+cd apps/web
+pnpm db:migrate
+pnpm db:seed
+
+# Start development server
+pnpm dev
+```
+
+Visit `http://localhost:3000`
+
+## Environment Variables
+
+Create `.env.local` in `apps/web/`:
+
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/multinotes"
+JWT_SECRET="your-super-secret-jwt-key-here"
+```
+
+## Scripts
+
+```bash
+# Development
+pnpm dev              # Start dev server
+pnpm build            # Build for production
+pnpm lint             # Run linting
+pnpm test             # Run all tests
+
+# Database
+pnpm db:migrate       # Run migrations
+pnpm db:seed          # Seed database
+pnpm db:generate      # Generate Prisma client
+```
+
+## Test Accounts
+
+All accounts use password: `password`
+
+**Acme Tenant:**
+
+- `admin@acme.test` (Admin)
+- `user@acme.test` (Member)
+
+**Globex Tenant:**
+
+- `admin@globex.test` (Admin)
+- `user@globex.test` (Member)
+
+## API Endpoints
 
 - `GET /api/health` - Health check
-- `POST /api/auth/login` - Login with email/password
-- `GET /api/notes` - List tenant's notes
-- `POST /api/notes` - Create a note (subscription gated)
-- `GET /api/notes/:id` - Get specific note
+- `POST /api/auth/login` - User login
+- `POST /api/auth/invite` - Invite user (Admin only)
+- `GET /api/notes` - List notes
+- `POST /api/notes` - Create note
+- `GET /api/notes/:id` - Get note
 - `PUT /api/notes/:id` - Update note
 - `DELETE /api/notes/:id` - Delete note
-- `POST /tenants/:slug/upgrade` - Upgrade tenant to Pro (Admin only)tion-based access control.
+- `POST /api/tenants/:slug/upgrade` - Upgrade to Pro (Admin only)
+
+## Deployment
+
+### Vercel
+
+1. Connect GitHub repo to Vercel
+2. Set `DATABASE_URL` and `JWT_SECRET` env vars
+3. Deploy
+
+### Manual
+
+```bash
+pnpm build
+pnpm db:migrate:prod
+```
+
+## License
+
+MIT
 
 ## Architecture
 

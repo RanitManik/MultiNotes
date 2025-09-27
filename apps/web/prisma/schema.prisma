@@ -48,7 +48,7 @@ model Note {
     tenant_id  String
     author_id  String
     title      String
-    content    String
+    content    Json
     created_at DateTime @default(now())
     updated_at DateTime @updatedAt
 

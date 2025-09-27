@@ -1,0 +1,307 @@
+/* TipTap Editor Styles */
+.prose {
+  color: hsl(var(--foreground));
+  max-width: none;
+  line-height: 1.7;
+}
+
+.prose :first-child {
+  margin-top: 0;
+}
+
+.prose :last-child {
+  margin-bottom: 0;
+}
+
+/* Paragraph spacing */
+.prose p {
+  margin: 1rem 0;
+  line-height: 1.7;
+}
+
+.prose p:first-child {
+  margin-top: 0;
+}
+
+.prose p:last-child {
+  margin-bottom: 0;
+}
+
+/* List styles */
+.prose ul,
+.prose ol {
+  padding: 0 1rem;
+  margin: 1.25rem 1rem 1.25rem 0.4rem;
+}
+
+.prose ul li,
+.prose ol li {
+  margin: 0.5rem 0;
+  line-height: 1.6;
+}
+
+.prose ul li p,
+.prose ol li p {
+  margin: 0.25em 0;
+}
+
+/* Nested lists */
+.prose ul ul,
+.prose ol ol,
+.prose ul ol,
+.prose ol ul {
+  margin: 0.5rem 0 0.5rem 1.5rem;
+}
+
+/* Heading styles */
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  line-height: 1.2;
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  text-wrap: pretty;
+  color: hsl(var(--foreground));
+  font-weight: 600;
+}
+
+.prose h1 {
+  font-size: 1.875rem;
+  margin-top: 0;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid hsl(var(--border));
+  padding-bottom: 0.5rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose h4,
+.prose h5,
+.prose h6 {
+  font-size: 1.125rem;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Code and preformatted text styles */
+.prose code {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  padding: 0.125rem 0.375rem;
+  font-family: "JetBrainsMono", "Monaco", "Consolas", "Courier New", monospace;
+  font-weight: 500;
+}
+
+.prose pre {
+  background: hsl(var(--muted));
+  color: hsl(var(--foreground));
+  border-radius: 0.5rem;
+  font-family: "JetBrainsMono", "Monaco", "Consolas", "Courier New", monospace;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  overflow-x: auto;
+  border: 1px solid hsl(var(--border));
+}
+
+.prose pre code {
+  background: none;
+  color: inherit;
+  font-size: 0.875rem;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* Blockquote styles */
+.prose blockquote {
+  border-left: 4px solid hsl(var(--primary));
+  margin: 1.5rem 0;
+  padding: 0.5rem 0 0.5rem 1.5rem;
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 0 0.5rem 0.5rem 0;
+  color: hsl(var(--muted-foreground));
+  font-style: italic;
+}
+
+.prose blockquote p {
+  margin: 0.5rem 0;
+}
+
+/* Callout styles */
+.prose .callout {
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+  background: hsl(var(--muted) / 0.5);
+}
+
+.prose .callout-info {
+  border-left: 4px solid hsl(var(--blue-500));
+  background: hsl(var(--blue-50) / 0.5);
+}
+
+.prose .callout-warning {
+  border-left: 4px solid hsl(var(--yellow-500));
+  background: hsl(var(--yellow-50) / 0.5);
+}
+
+.prose .callout-success {
+  border-left: 4px solid hsl(var(--green-500));
+  background: hsl(var(--green-50) / 0.5);
+}
+
+.prose .callout-error {
+  border-left: 4px solid hsl(var(--red-500));
+  background: hsl(var(--red-50) / 0.5);
+}
+
+.prose .callout-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Horizontal rule */
+.prose hr {
+  border: none;
+  border-top: 1px solid hsl(var(--border));
+  margin: 2rem 0;
+}
+
+/* Link styles */
+.prose a {
+  color: hsl(var(--primary));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.2s ease;
+}
+
+.prose a:hover {
+  color: hsl(var(--primary) / 0.8);
+}
+
+/* Focus and selection */
+.prose:focus {
+  outline: none;
+}
+
+/* Strong and emphasis */
+.prose strong {
+  font-weight: 600;
+  color: hsl(var(--foreground));
+}
+
+.prose em {
+  font-style: italic;
+  color: hsl(var(--foreground) / 0.9);
+}
+
+/* Task lists */
+.prose ul[data-type="taskList"] {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.prose ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.prose ul[data-type="taskList"] li input[type="checkbox"] {
+  margin: 0.125rem 0 0 0;
+  accent-color: hsl(var(--primary));
+}
+
+/* Table styles */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  font-size: 0.875rem;
+}
+
+.prose table th,
+.prose table td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+
+.prose table th {
+  background: hsl(var(--muted));
+  font-weight: 600;
+}
+
+.prose table tbody tr:nth-child(even) {
+  background: hsl(var(--muted) / 0.3);
+}
+
+/* Image styles */
+.prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+}
+
+/* Placeholder text */
+.prose .is-editor-empty:first-child::before {
+  color: hsl(var(--muted-foreground));
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Focus styles for editor */
+.ProseMirror-focused {
+  outline: none;
+}
+
+.ProseMirror {
+  outline: none;
+  cursor: text !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+}
+
+/* Custom scrollbar for editor */
+.prose::-webkit-scrollbar {
+  width: 6px;
+}
+
+.prose::-webkit-scrollbar-track {
+  background: hsl(var(--muted));
+  border-radius: 3px;
+}
+
+.prose::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+}
+
+.prose::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}

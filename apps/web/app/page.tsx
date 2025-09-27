@@ -25,27 +25,27 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Check if user is already logged in
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("auth:token");
     if (token) {
-      // Verify token is valid by making a request to a protected endpoint
-      fetch("/api/notes", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(response => {
-          if (response.ok) {
+      // Verify token is valid by decoding it locally
+      try {
+        const parts = token.split(".");
+        if (parts.length === 3 && parts[1]) {
+          const payload = JSON.parse(atob(parts[1]));
+          // Check if token is not expired
+          const currentTime = Math.floor(Date.now() / 1000);
+          if (payload.exp && payload.exp > currentTime) {
             router.push("/notes");
-          } else {
-            localStorage.removeItem("token");
-            setCheckingAuth(false);
+            return;
           }
-        })
-        .catch(() => {
-          localStorage.removeItem("token");
-          setCheckingAuth(false);
-        });
-    } else {
-      setCheckingAuth(false);
+        }
+      } catch {
+        // Token is invalid
+      }
+      // Remove invalid token
+      localStorage.removeItem("auth:token");
     }
+    setCheckingAuth(false);
   }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -63,7 +63,7 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("token", data.token);
+        localStorage.setItem("auth:token", data.token);
         router.push("/notes");
       } else {
         setError(data.error || "Login failed");

@@ -196,7 +196,11 @@ export default function NotesDashboard() {
 
   // Function to update a note in the local notes array
   const updateNoteInList = (noteId: string, updates: Partial<Note>) => {
-    setNotes(notes => notes ? notes.map(n => n.id === noteId ? {...n, ...updates} : n) : null);
+    setNotes(notes =>
+      notes
+        ? notes.map(n => (n.id === noteId ? { ...n, ...updates } : n))
+        : null
+    );
   };
 
   // State for the confetti and mobile sheet
@@ -250,12 +254,17 @@ export default function NotesDashboard() {
       setNotesLoading(true);
       setTenantLoading(true);
       try {
-        const toastResult = await toast.promise(Promise.all([fetchNotes(), getTenantInfo()]), {
-          loading: "Loading your notes...",
-          success: "Notes loaded successfully",
-          error: "Failed to load your notes.",
-        });
-        const [notesData, tenantData] = (toastResult as any)?.unwrap ? await (toastResult as any).unwrap() : toastResult;
+        const toastResult = await toast.promise(
+          Promise.all([fetchNotes(), getTenantInfo()]),
+          {
+            loading: "Loading your notes...",
+            success: "Notes loaded successfully",
+            error: "Failed to load your notes.",
+          }
+        );
+        const [notesData, tenantData] = (toastResult as any)?.unwrap
+          ? await (toastResult as any).unwrap()
+          : toastResult;
         setNotes(notesData);
         setTenant(tenantData);
 
@@ -328,7 +337,9 @@ export default function NotesDashboard() {
       success: "Note created successfully",
       error: "Failed to create note",
     });
-    const newNote = (toastResult as any)?.unwrap ? await (toastResult as any).unwrap() : toastResult;
+    const newNote = (toastResult as any)?.unwrap
+      ? await (toastResult as any).unwrap()
+      : toastResult;
     setSelectedId(newNote.id);
     refetchAll(); // Refresh data to update note count.
     setIsSheetOpen(false); // Close mobile sheet after creating.
@@ -343,7 +354,7 @@ export default function NotesDashboard() {
   const handleUpdateNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingNote) return;
-    const noteData = { title: editTitle };
+    const noteData = { title: editTitle, content: editingNote.content };
 
     // Close dialog and clear form immediately for optimistic UX
     setShowEditForm(false);
@@ -354,7 +365,10 @@ export default function NotesDashboard() {
     await toast.promise(updateNote(editingNote.id, noteData), {
       loading: "Updating note...",
       success: () => {
-        updateNoteInList(editingNote.id, { title: editTitle, updatedAt: new Date().toISOString() });
+        updateNoteInList(editingNote.id, {
+          title: editTitle,
+          updatedAt: new Date().toISOString(),
+        });
         return "Note updated successfully";
       },
       error: "Failed to update note",
@@ -390,7 +404,7 @@ export default function NotesDashboard() {
     await toast.promise(inviteUser({ email: inviteEmail, role: inviteRole }), {
       loading: "Inviting user...",
       success: `User ${inviteEmail} invited successfully!`,
-      error: (err) => {
+      error: err => {
         setError("Failed to invite user");
         return "Failed to invite user";
       },
@@ -412,7 +426,7 @@ export default function NotesDashboard() {
     upgradingRef.current = true;
     const toastResult = await toast.promise(upgradeTenant(tenant.slug), {
       loading: "Upgrading to Pro...",
-      success: (result) => {
+      success: result => {
         // Update token with new one containing updated tenant plan
         localStorage.setItem("auth:token", result.token);
 
@@ -1124,23 +1138,28 @@ function NoteEditorContainer({
   const saveToAPI = useCallback(
     async (data: { title?: string; content?: any }) => {
       setSaving(true);
-      await toast.promise(updateNote(noteId, {
-        title: data.title || "",
-        content: data.content || "",
-      }), {
-        loading: "Saving note...",
-        success: () => {
-          const updates: Partial<Note> = { updatedAt: new Date().toISOString() };
-          if (data.title !== undefined) updates.title = data.title;
-          onNoteUpdate(noteId, updates);
-          setSaving(false);
-          return "Note saved!";
-        },
-        error: () => {
-          setSaving(false);
-          return "Failed to save note.";
-        },
-      });
+      await toast.promise(
+        updateNote(noteId, {
+          title: data.title || "",
+          content: data.content || "",
+        }),
+        {
+          loading: "Saving note...",
+          success: () => {
+            const updates: Partial<Note> = {
+              updatedAt: new Date().toISOString(),
+            };
+            if (data.title !== undefined) updates.title = data.title;
+            onNoteUpdate(noteId, updates);
+            setSaving(false);
+            return "Note saved!";
+          },
+          error: () => {
+            setSaving(false);
+            return "Failed to save note.";
+          },
+        }
+      );
     },
     [noteId, onNoteUpdate]
   );

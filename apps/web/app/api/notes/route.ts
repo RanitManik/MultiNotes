@@ -35,7 +35,10 @@ export async function POST(request: NextRequest) {
     const { title, content } = await request.json();
 
     if (!title || !content) {
-      return NextResponse.json({ error: "Title and content required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Title and content required" },
+        { status: 400 }
+      );
     }
 
     // Check subscription limit

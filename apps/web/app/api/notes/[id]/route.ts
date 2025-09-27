@@ -49,7 +49,10 @@ export async function PUT(
     const { title, content } = await request.json();
 
     if (!title || !content) {
-      return NextResponse.json({ error: "Title and content required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Title and content required" },
+        { status: 400 }
+      );
     }
 
     const note = await prisma.note.findFirst({

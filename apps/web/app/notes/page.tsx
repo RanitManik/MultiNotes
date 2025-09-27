@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -83,6 +83,29 @@ export default function NotesPage() {
   const { notes, addNote, removeNote, updateNote, updateNotes } =
     useOptimisticNotes();
 
+  const fetchNotes = useCallback(async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const response = await fetch("/api/notes", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        updateNotes(data);
+      } else if (response.status === 401) {
+        localStorage.removeItem("token");
+        router.push("/");
+      }
+    } catch {
+      console.error("Failed to fetch notes");
+    } finally {
+      setLoading(false);
+    }
+  }, [router, updateNotes]);
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -107,30 +130,7 @@ export default function NotesPage() {
     }
 
     fetchNotes();
-  }, [router]);
-
-  const fetchNotes = async () => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
-
-    try {
-      const response = await fetch("/api/notes", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        updateNotes(data);
-      } else if (response.status === 401) {
-        localStorage.removeItem("token");
-        router.push("/");
-      }
-    } catch (err) {
-      console.error("Failed to fetch notes");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [router, fetchNotes]);
 
   const handleCreateNote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,9 +165,9 @@ export default function NotesPage() {
 
     try {
       await addNote(noteData, createNoteAPI);
-    } catch (err) {
+    } catch {
       // Error is already handled by the hook
-      console.error("Create note failed:", err);
+      console.error("Create note failed");
     }
   };
 
@@ -188,9 +188,9 @@ export default function NotesPage() {
     };
 
     // Don't await - let the dialog close immediately
-    removeNote(id, deleteNoteAPI).catch(err => {
+    removeNote(id, deleteNoteAPI).catch(() => {
       // Error is already handled by the hook
-      console.error("Delete note failed:", err);
+      console.error("Delete note failed");
     });
   };
 
@@ -293,9 +293,9 @@ export default function NotesPage() {
 
     try {
       await updateNote(editingNote.id, noteData, updateNoteAPI);
-    } catch (err) {
+    } catch {
       // Error is already handled by the hook
-      console.error("Update note failed:", err);
+      console.error("Update note failed");
     }
   };
 
@@ -620,7 +620,7 @@ export default function NotesPage() {
                             <AlertDialogHeader>
                               <AlertDialogTitle>Delete Note</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Are you sure you want to delete "{note.title}"?
+                                Are you sure you want to delete &quot;{note.title}&quot;?
                                 This action cannot be undone.
                               </AlertDialogDescription>
                             </AlertDialogHeader>
@@ -674,7 +674,7 @@ export default function NotesPage() {
             <Alert className="mt-8">
               <AlertTriangle className="h-4 w-4" />
               <AlertDescription>
-                You've reached the free plan limit of 3 notes. Ask an admin to
+                You&apos;ve reached the free plan limit of 3 notes. Ask an admin to
                 upgrade to Pro for unlimited notes.
               </AlertDescription>
             </Alert>

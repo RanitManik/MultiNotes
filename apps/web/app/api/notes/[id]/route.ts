@@ -15,7 +15,7 @@ export async function GET(
     const { id } = await params;
     const note = await prisma.note.findFirst({
       where: {
-        id: (await params).id,
+        id,
         tenant_id: user.tenantId,
       },
       include: { author: { select: { email: true } } },
@@ -45,6 +45,7 @@ export async function PUT(
   }
 
   try {
+    const { id } = await params;
     const { title, content } = await request.json();
 
     if (!title || !content) {
@@ -56,7 +57,7 @@ export async function PUT(
 
     const note = await prisma.note.findFirst({
       where: {
-        id: (await params).id,
+        id,
         tenant_id: user.tenantId,
       },
     });
@@ -66,7 +67,7 @@ export async function PUT(
     }
 
     const updatedNote = await prisma.note.update({
-      where: { id: (await params).id },
+      where: { id },
       data: { title, content },
       include: { author: { select: { email: true } } },
     });
@@ -91,9 +92,10 @@ export async function DELETE(
   }
 
   try {
+    const { id } = await params;
     const note = await prisma.note.findFirst({
       where: {
-        id: (await params).id,
+        id,
         tenant_id: user.tenantId,
       },
     });
@@ -103,7 +105,7 @@ export async function DELETE(
     }
 
     await prisma.note.delete({
-      where: { id: (await params).id },
+      where: { id },
     });
 
     return NextResponse.json({ message: "Note deleted" });

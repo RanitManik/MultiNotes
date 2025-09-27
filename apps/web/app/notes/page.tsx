@@ -628,7 +628,7 @@ export default function NotesDashboard() {
 
       <div className="flex min-h-svh w-full">
         {/* Permanent Sidebar for medium screens and up (desktops) */}
-        <aside className="bg-card hidden w-72 shrink-0 flex-col gap-4 border-r md:flex">
+        <aside className="bg-card hidden w-72 shrink-0 flex-col border-r md:flex">
           <SidebarContent
             notes={notes}
             notesLoading={notesLoading}
@@ -777,7 +777,17 @@ function SidebarContent({
       <div className="min-w-0 p-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="truncate text-pretty text-sm font-medium">My Notes</p>
+            <div className="flex items-center gap-2">
+              <span className="truncate text-pretty text-xl font-medium">
+                {tenant?.slug}
+              </span>
+              <Badge
+                variant="secondary"
+                className="px-1.5 py-0.5 text-xs font-medium"
+              >
+                {tenant?.plan === "FREE" ? "Free" : "Pro"}
+              </Badge>
+            </div>
             <p className="text-muted-foreground truncate text-xs">
               {tenant?.plan === "FREE" && tenant?.limit !== null
                 ? `${tenant?.noteCount} / ${tenant?.limit} Notes`
@@ -790,7 +800,7 @@ function SidebarContent({
       {limitReached && user?.role === "admin" && (
         <UpgradeBanner onUpgrade={onUpgrade} />
       )}
-      <Separator />
+      <Separator className="mb-4 mt-1" />
       <div className="flex flex-col gap-2 px-2">
         <Button
           size="sm"
@@ -814,7 +824,7 @@ function SidebarContent({
           </Button>
         )}
       </div>
-      <Separator />
+      <Separator className="my-4" />
 
       <ScrollArea className="flex-1">
         <nav className="space-y-1 px-2 pb-2">
@@ -931,7 +941,7 @@ function UserMenu({ user, tenant, onLogout, onUpgrade }: any) {
             <div className="grid flex-1 text-left text-sm leading-tight">
               {user?.role === "admin" ? "Admin" : "Member"}
               {" • "}
-              {user?.tenantPlan === "pro" ? "Pro" : "Free"}
+              {tenant?.slug || "Tenant"}
               <span className="truncate text-xs font-medium">
                 {tenant?.email || "User"}
               </span>
@@ -1022,7 +1032,7 @@ function Topbar({
   onLogout,
 }: any) {
   return (
-    <header className="bg-card flex w-full items-center gap-4 px-3 py-2 md:hidden md:justify-between">
+    <header className="bg-card flex w-full items-center px-3 py-2 md:hidden md:justify-between">
       {/* Mobile Menu Button - only visible on small screens */}
       <Sheet open={isSheetOpen} onOpenChange={onOpenSheet}>
         <SheetTrigger asChild>

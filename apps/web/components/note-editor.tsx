@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useRef, useMemo, Fragment } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -45,6 +45,7 @@ import {
   Superscript,
   Subscript,
   ChevronDown,
+  Minus,
 } from "lucide-react";
 // @ts-ignore
 import "./note-styles.css";
@@ -411,6 +412,35 @@ export function Toolbar({
           >
             <Code2 className="mr-2 size-4" />
             Code Block
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "divider",
+        jsx: (
+          <Tooltip key="divider">
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("horizontalRule"))}
+                onClick={() => editor.chain().focus().setHorizontalRule().run()}
+                aria-label="Divider"
+              >
+                <Minus
+                  className={`size-4 ${editor.isActive("horizontalRule") ? "text-primary" : ""}`}
+                />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Divider</TooltipContent>
+          </Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+          >
+            <Minus className="mr-2 size-4" />
+            Divider
           </DropdownMenuItem>
         ),
       },
@@ -941,7 +971,9 @@ export function Toolbar({
       >
         {/* inner toolbar is auto-width so it can be centered by the parent on md+ screens */}
         <div className="toolbar-inner flex items-center gap-1 overflow-hidden">
-          {visibleTools.map(tool => tool.jsx)}
+          {visibleTools.map(tool => (
+            <Fragment key={tool.id}>{tool.jsx}</Fragment>
+          ))}
           {hiddenTools.length > 0 && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -950,7 +982,9 @@ export function Toolbar({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                {hiddenTools.map(tool => tool.dropdownJsx)}
+                {hiddenTools.map(tool => (
+                  <Fragment key={tool.id}>{tool.dropdownJsx}</Fragment>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

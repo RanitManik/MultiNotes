@@ -300,9 +300,38 @@
     margin: 0;
     cursor: pointer;
     flex-shrink: 0;
-    width: 1.15rem;
-    height: 1.15rem;
-    border: 2px solid var(--foreground);
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid var(--primary);
+    border-radius: 0.25rem;
+    background-color: transparent;
+    appearance: none;
+    position: relative;
+    transition: all 0.1s ease;
+  }
+
+  .tiptap ul[data-type="taskList"] li input[type="checkbox"]:checked {
+    background-color: var(--primary);
+    border-color: var(--primary);
+  }
+
+  .tiptap ul[data-type="taskList"] li input[type="checkbox"]:checked::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0.75rem;
+    height: 0.75rem;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='20,6 9,17 4,12'%3e%3c/polyline%3e%3c/svg%3e");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .tiptap ul[data-type="taskList"] li input[type="checkbox"]:hover {
+    border-color: var(--primary);
+    opacity: 0.8;
   }
 
   .tiptap ul[data-type="taskList"] li span {

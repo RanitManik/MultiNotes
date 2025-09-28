@@ -103,12 +103,15 @@ export const api = {
     return response.json();
   },
 
-  upgradeTenant: async (slug: string): Promise<void> => {
+  upgradeTenant: async (
+    slug: string
+  ): Promise<{ message: string; tenant: Tenant; token: string }> => {
     const response = await fetch(`/api/tenants/${slug}/upgrade`, {
       method: "POST",
       headers: getAuthHeaders(),
     });
     if (!response.ok) handleApiError(response);
+    return response.json();
   },
 
   // Auth
@@ -193,7 +196,14 @@ export const useUpgradeTenant = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.upgradeTenant,
-    // Remove automatic invalidation - we'll handle it manually after token update
+    onSuccess: data => {
+      // Update the auth token
+      if (data.token) {
+        localStorage.setItem("auth:token", data.token);
+      }
+      // Invalidate tenant query to get updated data
+      queryClient.invalidateQueries({ queryKey: ["tenant"] });
+    },
   });
 };
 

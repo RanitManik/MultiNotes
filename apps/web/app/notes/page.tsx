@@ -479,8 +479,6 @@ function NotesDashboardContent() {
       setUser(prevUser =>
         prevUser ? { ...prevUser, tenantPlan: "pro" } : null
       );
-      // Invalidate tenant query to get updated data
-      queryClient.invalidateQueries({ queryKey: ["tenant"] });
 
       // 🎊 Show confetti and fade it out smoothly before hiding.
       const DURATION = 6000; // total confetti duration
@@ -846,7 +844,7 @@ function NotesDashboardContent() {
           </Topbar>
           <Separator />
           <div className="min-w-0 flex-1">
-            {notesLoading ? (
+            {notesLoading || tenantLoading ? (
               <div className="flex h-full flex-col">
                 <div className="flex items-center gap-2 px-4 pb-2 pt-4">
                   <Skeleton className="h-10 flex-1" />
@@ -1365,13 +1363,20 @@ function NoteEditorContainer({
   // Save to API
   const saveToAPI = useCallback(
     async (data: { title?: string; content?: any }) => {
+      // Validate title
+      const titleToSave = data.title?.trim();
+      if (!titleToSave) {
+        toast.error("Please enter a title for your note");
+        return;
+      }
+
       const contentToSave = data.content || editor?.getJSON();
       setSaving(true);
       try {
         await toast.promise(
           updateNoteMutation.mutateAsync({
             id: noteId,
-            data: { ...data, content: contentToSave },
+            data: { ...data, title: titleToSave, content: contentToSave },
           }),
           {
             loading: "Saving note...",
@@ -1382,7 +1387,7 @@ function NoteEditorContainer({
         const updates: Partial<Note> = {
           updated_at: new Date().toISOString(),
         };
-        if (data.title !== undefined) updates.title = data.title;
+        if (titleToSave !== undefined) updates.title = titleToSave;
         onNoteUpdate(noteId, updates);
         setDirty(false);
       } catch (err) {

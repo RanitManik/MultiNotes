@@ -1,73 +1,73 @@
 /* TipTap Editor Styles */
-.prose {
+.tiptap {
   color: hsl(var(--foreground));
   max-width: none;
   line-height: 1.7;
 }
 
-.prose :first-child {
+.tiptap :first-child {
   margin-top: 0;
 }
 
-.prose :last-child {
+.tiptap :last-child {
   margin-bottom: 0;
 }
 
 /* Paragraph spacing */
-.prose p {
+.tiptap p {
   margin: 1rem 0;
   line-height: 1.7;
 }
 
-.prose p:first-child {
+.tiptap p:first-child {
   margin-top: 0;
 }
 
-.prose p:last-child {
+.tiptap p:last-child {
   margin-bottom: 0;
 }
 
 /* List styles */
-.prose ul,
-.prose ol {
+.tiptap ul,
+.tiptap ol {
   padding: 0 1rem;
   margin: 1.25rem 1rem 1.25rem 0.4rem;
 }
 
-.prose ul {
+.tiptap ul {
   list-style-type: disc;
 }
 
-.prose ol {
+.tiptap ol {
   list-style-type: decimal;
 }
 
-.prose ul li,
-.prose ol li {
+.tiptap ul li,
+.tiptap ol li {
   margin: 0.5rem 0;
   line-height: 1.6;
 }
 
-.prose ul li p,
-.prose ol li p {
+.tiptap ul li p,
+.tiptap ol li p {
   margin: 0.25em 0;
 }
 
 /* Nested lists */
-.prose ul ul,
-.prose ol ol,
-.prose ul ol,
-.prose ol ul {
+.tiptap ul ul,
+.tiptap ol ol,
+.tiptap ul ol,
+.tiptap ol ul {
   margin: 0.5rem 0 0.5rem 1.5rem;
 }
 
 /* Heading styles */
-.prose h1,
-.prose h2,
-.prose h3,
-.prose h4,
-.prose h5,
-.prose h6 {
+.tiptap h1,
+.tiptap h2,
+.tiptap h3,
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
   line-height: 1.2;
   margin-top: 2.5rem;
   margin-bottom: 1rem;
@@ -76,7 +76,7 @@
   font-weight: 600;
 }
 
-.prose h1 {
+.tiptap h1 {
   font-size: 1.5rem;
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
@@ -85,30 +85,30 @@
   font-weight: 600;
 }
 
-.prose h2 {
+.tiptap h2 {
   font-size: 1.25rem;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
-.prose h3 {
+.tiptap h3 {
   font-size: 1.125rem;
   margin-top: 1rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
 }
 
-.prose h4,
-.prose h5,
-.prose h6 {
+.tiptap h4,
+.tiptap h5,
+.tiptap h6 {
   font-size: 1.125rem;
   margin-top: 1.25rem;
   margin-bottom: 0.5rem;
 }
 
 /* Code and preformatted text styles */
-.prose code {
+.tiptap code {
   background-color: hsl(var(--muted));
   color: hsl(var(--foreground));
   border-radius: 0.375rem;
@@ -118,7 +118,7 @@
   font-weight: 500;
 }
 
-.prose pre {
+.tiptap pre {
   background: hsl(var(--muted));
   color: hsl(var(--foreground));
   border-radius: 0.5rem;
@@ -129,7 +129,7 @@
   border: 1px solid hsl(var(--border));
 }
 
-.prose pre code {
+.tiptap pre code {
   background: none;
   color: inherit;
   font-size: 0.875rem;
@@ -138,7 +138,7 @@
 }
 
 /* Blockquote styles */
-.prose blockquote {
+.tiptap blockquote {
   border-left: 4px solid hsl(var(--primary));
   margin: 1.5rem 0;
   padding: 0.5rem 0 0.5rem 1.5rem;
@@ -148,12 +148,12 @@
   font-style: italic;
 }
 
-.prose blockquote p {
+.tiptap blockquote p {
   margin: 0.5rem 0;
 }
 
 /* Callout styles */
-.prose .callout {
+.tiptap .callout {
   border: 1px solid hsl(var(--border));
   border-radius: 0.5rem;
   padding: 1rem;
@@ -161,27 +161,27 @@
   background: hsl(var(--muted) / 0.5);
 }
 
-.prose .callout-info {
+.tiptap .callout-info {
   border-left: 4px solid hsl(var(--blue-500));
   background: hsl(var(--blue-50) / 0.5);
 }
 
-.prose .callout-warning {
+.tiptap .callout-warning {
   border-left: 4px solid hsl(var(--yellow-500));
   background: hsl(var(--yellow-50) / 0.5);
 }
 
-.prose .callout-success {
+.tiptap .callout-success {
   border-left: 4px solid hsl(var(--green-500));
   background: hsl(var(--green-50) / 0.5);
 }
 
-.prose .callout-error {
+.tiptap .callout-error {
   border-left: 4px solid hsl(var(--red-500));
   background: hsl(var(--red-50) / 0.5);
 }
 
-.prose .callout-title {
+.tiptap .callout-title {
   font-weight: 600;
   margin-bottom: 0.5rem;
   display: flex;
@@ -190,14 +190,14 @@
 }
 
 /* Horizontal rule */
-.prose hr {
+.tiptap hr {
   border: none;
   border-top: 1px solid hsl(var(--border));
   margin: 2rem 0;
 }
 
 /* Link styles */
-.prose a {
+.tiptap a {
   color: hsl(var(--primary));
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -205,48 +205,78 @@
   cursor: pointer;
 }
 
-.prose a:hover {
+.tiptap a:hover {
   color: hsl(var(--primary) / 0.8);
 }
 
 /* Focus and selection */
-.prose:focus {
+.tiptap:focus {
   outline: none;
 }
 
 /* Strong and emphasis */
-.prose strong {
+.tiptap strong {
   font-weight: 600;
   color: hsl(var(--foreground));
 }
 
-.prose em {
+.tiptap em {
   font-style: italic;
   color: hsl(var(--foreground) / 0.9);
 }
 
+.tiptap u {
+  text-decoration: underline;
+}
+
+/* Superscript and Subscript */
+.tiptap sup,
+.tiptap sub {
+  font-size: 0.75em;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+.tiptap sup {
+  top: -0.5em;
+}
+
+.tiptap sub {
+  bottom: -0.25em;
+}
+
+/* Highlight styles */
+.tiptap mark {
+  background-color: hsl(var(--yellow-200));
+  color: hsl(var(--foreground));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-weight: 500;
+}
+
 /* Task lists */
-.prose ul[data-type="taskList"] {
+.tiptap ul[data-type="taskList"] {
   list-style: none;
   padding: 0;
   margin: 1rem 0;
 }
 
-.prose ul[data-type="taskList"] li {
+.tiptap ul[data-type="taskList"] li {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   margin: 0.25rem 0;
 }
 
-.prose ul[data-type="taskList"] li label {
+.tiptap ul[data-type="taskList"] li label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
 }
 
-.prose ul[data-type="taskList"] li input[type="checkbox"] {
+.tiptap ul[data-type="taskList"] li input[type="checkbox"] {
   margin: 0;
   cursor: pointer;
   flex-shrink: 0;
@@ -255,37 +285,37 @@
   border: 2px solid hsl(var(--foreground));
 }
 
-.prose ul[data-type="taskList"] li span {
+.tiptap ul[data-type="taskList"] li span {
   flex: 1;
   cursor: text;
 }
 
 /* Table styles */
-.prose table {
+.tiptap table {
   width: 100%;
   border-collapse: collapse;
   margin: 1.5rem 0;
   font-size: 0.875rem;
 }
 
-.prose table th,
-.prose table td {
+.tiptap table th,
+.tiptap table td {
   border: 1px solid hsl(var(--border));
   padding: 0.5rem 0.75rem;
   text-align: left;
 }
 
-.prose table th {
+.tiptap table th {
   background: hsl(var(--muted));
   font-weight: 600;
 }
 
-.prose table tbody tr:nth-child(even) {
+.tiptap table tbody tr:nth-child(even) {
   background: hsl(var(--muted) / 0.3);
 }
 
 /* Image styles */
-.prose img {
+.tiptap img {
   max-width: 100%;
   height: auto;
   border-radius: 0.5rem;
@@ -293,7 +323,7 @@
 }
 
 /* Placeholder text */
-.prose .is-editor-empty:first-child::before {
+.tiptap .is-editor-empty:first-child::before {
   color: hsl(var(--muted-foreground));
   content: attr(data-placeholder);
   float: left;
@@ -321,20 +351,20 @@
 }
 
 /* Custom scrollbar for editor */
-.prose::-webkit-scrollbar {
+.tiptap::-webkit-scrollbar {
   width: 6px;
 }
 
-.prose::-webkit-scrollbar-track {
+.tiptap::-webkit-scrollbar-track {
   background: hsl(var(--muted));
   border-radius: 3px;
 }
 
-.prose::-webkit-scrollbar-thumb {
+.tiptap::-webkit-scrollbar-thumb {
   background: hsl(var(--muted-foreground) / 0.3);
   border-radius: 3px;
 }
 
-.prose::-webkit-scrollbar-thumb:hover {
+.tiptap::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }

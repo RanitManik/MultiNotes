@@ -57,6 +57,11 @@ import CodeBlock from "@tiptap/extension-code-block";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Link from "@tiptap/extension-link";
+import TextAlign from "@tiptap/extension-text-align";
+import Highlight from "@tiptap/extension-highlight";
+import Underline from "@tiptap/extension-underline";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 
 const defaultDoc = {
   type: "doc",
@@ -1274,11 +1279,17 @@ function NoteEditorContainer({
         placeholder: "Start typing...",
         emptyEditorClass: "is-editor-empty text-muted-foreground",
       }),
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+      Highlight,
+      Underline,
+      Subscript,
+      Superscript,
     ],
     editorProps: {
       attributes: {
-        class:
-          "prose prose-sm md:prose-base max-w-none py-6 px-4 md:px-6 text-foreground",
+        class: "tiptap max-w-none py-6 px-4 md:px-6 text-foreground",
       },
     },
     onUpdate: handleEditorUpdate,

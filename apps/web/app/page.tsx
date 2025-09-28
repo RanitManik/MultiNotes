@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -10,10 +10,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { FileText, Users, Shield } from "lucide-react";
+import { FileText, Users, Shield, Loader2 } from "lucide-react";
 
 export default function LandingPage() {
   const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -37,7 +38,19 @@ export default function LandingPage() {
       // Remove invalid token
       localStorage.removeItem("auth:token");
     }
+    setCheckingAuth(false);
   }, [router]);
+
+  if (checkingAuth) {
+    return (
+      <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br">
+        <div className="text-center">
+          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="from-background to-muted min-h-screen bg-gradient-to-br">

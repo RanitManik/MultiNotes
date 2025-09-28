@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -21,7 +21,33 @@ export default function RegisterPage() {
   const [tenantName, setTenantName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const token = localStorage.getItem("auth:token");
+    if (token) {
+      // Verify token is valid by decoding it locally
+      try {
+        const parts = token.split(".");
+        if (parts.length === 3 && parts[1]) {
+          const payload = JSON.parse(atob(parts[1]));
+          // Check if token is not expired
+          const currentTime = Math.floor(Date.now() / 1000);
+          if (payload.exp && payload.exp > currentTime) {
+            router.push("/notes");
+            return;
+          }
+        }
+      } catch {
+        // Token is invalid
+      }
+      // Remove invalid token
+      localStorage.removeItem("auth:token");
+    }
+    setCheckingAuth(false);
+  }, [router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,6 +79,17 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (checkingAuth) {
+    return (
+      <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br">
+        <div className="text-center">
+          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">

@@ -65,20 +65,9 @@ import Underline from "@tiptap/extension-underline";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 
-const defaultDoc = {
-  type: "doc",
-  content: [
-    {
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: "Start writing your note here...",
-        },
-      ],
-    },
-  ],
-};
+// defaultDoc removed: editor should initialize empty and be populated from
+// the fetched note to avoid creating an initial undo state that contains
+// the placeholder text.
 import {
   Trash2,
   Plus,
@@ -202,6 +191,13 @@ function NotesDashboardContent() {
 
   // State for managing the currently selected note
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Ref set by NoteEditorContainer to indicate whether there are unsaved changes
+  const editorDirtyRef = useRef<boolean>(false);
+  // Ref to a save function registered by NoteEditorContainer so parent can trigger a save
+  const saveCurrentNoteRef = useRef<(() => Promise<void>) | null>(null);
+  // Pending selection when user attempts to switch while having unsaved changes
+  const [pendingSelectId, setPendingSelectId] = useState<string | null>(null);
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
 
   // State for delete confirmation
   const [deleteNoteId, setDeleteNoteId] = useState<string | null>(null);
@@ -310,6 +306,15 @@ function NotesDashboardContent() {
 
   // Handlers for creating, deleting, and selecting notes.
   const handleSelectNote = (id: string) => {
+    // If there are unsaved changes in the current editor, prompt the user
+    // before switching notes.
+    if (editorDirtyRef.current && id !== selectedId) {
+      setPendingSelectId(id);
+      setShowUnsavedDialog(true);
+      return;
+    }
+
+    // Proceed with selection
     setSelectedId(id);
     setIsSheetOpen(false); // Close mobile sheet on selection.
 
@@ -317,6 +322,20 @@ function NotesDashboardContent() {
     const newSearchParams = new URLSearchParams(searchParams);
     newSearchParams.set("note", id);
     router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+  };
+
+  // Helper to actually proceed with selection (bypassing the unsaved check)
+  const handleSelectNoteProceed = (id: string) => {
+    setPendingSelectId(null);
+    setSelectedId(id);
+    setIsSheetOpen(false);
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("note", id);
+    router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+  };
+
+  const setEditorDirtyRefFalse = () => {
+    editorDirtyRef.current = false;
   };
 
   const handleCreateNote = async (e: React.FormEvent) => {
@@ -863,10 +882,69 @@ function NotesDashboardContent() {
                 </div>
               </div>
             ) : selectedId ? (
-              <NoteEditorContainer
-                noteId={selectedId}
-                onNoteUpdate={updateNoteInList}
-              />
+              <>
+                <NoteEditorContainer
+                  noteId={selectedId}
+                  onNoteUpdate={updateNoteInList}
+                  // Provide refs so the child can register dirty state and save
+                  registerDirtyRef={(ref: boolean) =>
+                    (editorDirtyRef.current = ref)
+                  }
+                  registerSaveFn={(fn: () => Promise<void>) =>
+                    (saveCurrentNoteRef.current = fn)
+                  }
+                />
+
+                {/* Unsaved changes dialog (shadcn AlertDialog style) */}
+                <AlertDialog
+                  open={showUnsavedDialog}
+                  onOpenChange={open => {
+                    if (!open) setPendingSelectId(null);
+                    setShowUnsavedDialog(open);
+                  }}
+                >
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        You have unsaved changes. What would you like to do?
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogAction
+                        className="bg-destructive hover:bg-destructive/90 text-white"
+                        onClick={async () => {
+                          // Discard changes and proceed
+                          setShowUnsavedDialog(false);
+                          setEditorDirtyRefFalse();
+                          if (pendingSelectId)
+                            handleSelectNoteProceed(pendingSelectId);
+                        }}
+                      >
+                        Discard & Proceed
+                      </AlertDialogAction>
+                      <AlertDialogAction
+                        onClick={async () => {
+                          // Save then proceed
+                          if (saveCurrentNoteRef.current) {
+                            try {
+                              await saveCurrentNoteRef.current();
+                            } catch (err) {
+                              // If save failed, keep the dialog open
+                              return;
+                            }
+                          }
+                          setShowUnsavedDialog(false);
+                          if (pendingSelectId)
+                            handleSelectNoteProceed(pendingSelectId);
+                        }}
+                      >
+                        Save & Proceed
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </>
             ) : (
               <div className="grid h-full place-items-center">
                 <div className="text-center">
@@ -1012,7 +1090,7 @@ function SidebarContent({
               role="button"
               tabIndex={0}
               className={cn(
-                "hover:bg-accent/70 group w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2",
+                "hover:bg-accent/70 group w-full cursor-pointer select-none rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2",
                 selectedId === note.id && "bg-accent"
               )}
               onClick={() => onSelectNote(note.id)}
@@ -1296,9 +1374,13 @@ function UpgradeBanner({ onUpgrade }: { onUpgrade: () => void }) {
 function NoteEditorContainer({
   noteId,
   onNoteUpdate,
+  registerDirtyRef,
+  registerSaveFn,
 }: {
   noteId: string;
   onNoteUpdate: (noteId: string, updates: Partial<Note>) => void;
+  registerDirtyRef?: (isDirty: boolean) => void;
+  registerSaveFn?: (fn: () => Promise<void>) => void;
 }) {
   const { data: noteData, isLoading, error } = useNote(noteId);
   const updateNoteMutation = useUpdateNote();
@@ -1310,13 +1392,17 @@ function NoteEditorContainer({
   );
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Editor is considered ready once programmatic setContent + clearHistory is done
+  const [editorReady, setEditorReady] = useState(false);
 
   const handleEditorUpdate = useCallback(() => {
     setDirty(true);
   }, []);
 
   const editor = useEditor({
-    content: defaultDoc,
+    // Do not set a default content here. The editor will be populated
+    // from the fetched note in an effect below. This avoids creating an
+    // initial undo entry that contains placeholder text.
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
@@ -1356,8 +1442,23 @@ function NoteEditorContainer({
       setCurrentTitle(note.title);
       setCurrentContent(note.content);
       setDirty(false);
+      setEditorReady(false);
       if (editor) {
+        // Programmatically set the editor content from the loaded note.
+        // Pass `false` so it does not trigger update handlers as a user
+        // edit. Immediately clear the history so undo/redo won't step
+        // back to any previous programmatic content (like a placeholder
+        // or previously-loaded note), which fixes the undesired undo
+        // behavior and flicker when switching notes.
         editor.commands.setContent(note.content, false);
+        // Try to clear the editor history so undo doesn't revert to the
+        // programmatic content. Use storage.history.clear() as clearHistory
+        // command is not available.
+        if (editor.storage && editor.storage.history) {
+          editor.storage.history.clear();
+        }
+        // Now mark editor ready so the parent can render it without flicker
+        setEditorReady(true);
       }
     }
   }, [note, editor]);
@@ -1400,6 +1501,20 @@ function NoteEditorContainer({
     },
     [noteId, onNoteUpdate, updateNoteMutation, editor]
   );
+
+  // Register dirty state with parent
+  useEffect(() => {
+    if (typeof registerDirtyRef === "function") registerDirtyRef(dirty);
+  }, [dirty, registerDirtyRef]);
+
+  // Register save function with parent
+  useEffect(() => {
+    if (typeof registerSaveFn === "function") {
+      registerSaveFn(async () => {
+        await saveToAPI({ title: currentTitle });
+      });
+    }
+  }, [registerSaveFn, saveToAPI, currentTitle]);
 
   // Handler for title changes. Updates local state and marks as dirty.
   const onTitleChange = (newTitle: string) => {
@@ -1445,7 +1560,7 @@ function NoteEditorContainer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [dirty, saving, handleManualSave]);
 
-  if (isLoading) {
+  if (isLoading || !editorReady) {
     return (
       <div className="flex h-full flex-col">
         <div className="flex items-center gap-2 px-4 pb-2 pt-4">

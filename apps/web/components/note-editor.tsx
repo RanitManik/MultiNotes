@@ -15,6 +15,13 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@workspace/ui/components/dropdown-menu";
+import {
   Bold,
   Italic,
   Strikethrough,
@@ -27,6 +34,7 @@ import {
   Save,
   ListChecks,
   Link,
+  MoreHorizontal,
 } from "lucide-react";
 // @ts-ignore
 import "./note-styles.css";
@@ -60,7 +68,8 @@ export function Toolbar({
 
   return (
     <div className="flex w-full items-center justify-between border-b px-3 py-2">
-      <div className="relative flex items-center gap-1 overflow-x-auto">
+      <div className="flex items-center gap-1">
+        {/* Essential buttons always visible */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -120,194 +129,285 @@ export function Toolbar({
           </TooltipTrigger>
           <TooltipContent>Italic</TooltipContent>
         </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
+
+        {/* Desktop buttons */}
+        <div className="hidden items-center gap-1 md:flex">
+          <Separator orientation="vertical" className="mx-2 h-5" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("strike"))}
+                onClick={() => editor.chain().focus().toggleStrike().run()}
+                aria-label="Strikethrough"
+              >
+                <Strikethrough className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Strikethrough</TooltipContent>
+          </Tooltip>
+          <Separator orientation="vertical" className="mx-2 h-5" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("heading", { level: 1 }))}
+                onClick={() =>
+                  editor.chain().focus().toggleHeading({ level: 1 }).run()
+                }
+                aria-label="Heading 1"
+              >
+                H1
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Heading 1</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("heading", { level: 2 }))}
+                onClick={() =>
+                  editor.chain().focus().toggleHeading({ level: 2 }).run()
+                }
+                aria-label="Heading 2"
+              >
+                H2
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Heading 2</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("heading", { level: 3 }))}
+                onClick={() =>
+                  editor.chain().focus().toggleHeading({ level: 3 }).run()
+                }
+                aria-label="Heading 3"
+              >
+                H3
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Heading 3</TooltipContent>
+          </Tooltip>
+          <Separator orientation="vertical" className="mx-2 h-5" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("bulletList"))}
+                onClick={() => editor.chain().focus().toggleBulletList().run()}
+                aria-label="Bullet list"
+              >
+                <List className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Bullet list</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("orderedList"))}
+                onClick={() => editor.chain().focus().toggleOrderedList().run()}
+                aria-label="Ordered list"
+              >
+                <ListOrdered className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Ordered list</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("taskList"))}
+                onClick={() => editor.chain().focus().toggleTaskList().run()}
+                aria-label="Task list"
+              >
+                <ListChecks className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Task list</TooltipContent>
+          </Tooltip>
+          <Separator orientation="vertical" className="mx-2 h-5" />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("blockquote"))}
+                onClick={() => editor.chain().focus().toggleBlockquote().run()}
+                aria-label="Quote"
+              >
+                <Quote className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Quote</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className={itemCls(editor.isActive("codeBlock"))}
+                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+                aria-label="Code block"
+              >
+                <Code className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Code block</TooltipContent>
+          </Tooltip>
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className={itemCls(editor.isActive("link"))}
+                    aria-label="Link"
+                  >
+                    <Link className="size-4" />
+                  </Button>
+                </PopoverTrigger>
+              </TooltipTrigger>
+              <TooltipContent>Link</TooltipContent>
+            </Tooltip>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="link-url">URL</Label>
+                  <Input
+                    id="link-url"
+                    value={linkUrl}
+                    onChange={e => setLinkUrl(e.target.value)}
+                    placeholder="https://example.com"
+                  />
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      editor.chain().focus().unsetLink().run();
+                      setIsPopoverOpen(false);
+                    }}
+                  >
+                    Remove
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      if (linkUrl) {
+                        editor.chain().focus().setLink({ href: linkUrl }).run();
+                      }
+                      setIsPopoverOpen(false);
+                    }}
+                  >
+                    Set Link
+                  </Button>
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Mobile dropdown menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
               size="sm"
               variant="ghost"
-              className={itemCls(editor.isActive("strike"))}
-              onClick={() => editor.chain().focus().toggleStrike().run()}
-              aria-label="Strikethrough"
+              className="ml-2 md:hidden"
+              aria-label="More formatting options"
             >
-              <Strikethrough className="size-4" />
+              <MoreHorizontal className="size-4" />
             </Button>
-          </TooltipTrigger>
-          <TooltipContent>Strikethrough</TooltipContent>
-        </Tooltip>
-        <Separator orientation="vertical" className="mx-2 h-5" />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("heading", { level: 1 }))}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-48">
+            <DropdownMenuItem
+              onClick={() => editor.chain().focus().toggleStrike().run()}
+            >
+              <Strikethrough className="mr-2 size-4" />
+              Strikethrough
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 1 }).run()
               }
-              aria-label="Heading 1"
             >
               H1
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Heading 1</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("heading", { level: 2 }))}
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 2 }).run()
               }
-              aria-label="Heading 2"
             >
               H2
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Heading 2</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("heading", { level: 3 }))}
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() =>
                 editor.chain().focus().toggleHeading({ level: 3 }).run()
               }
-              aria-label="Heading 3"
             >
               H3
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Heading 3</TooltipContent>
-        </Tooltip>
-        <Separator orientation="vertical" className="mx-2 h-5" />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("bulletList"))}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
               onClick={() => editor.chain().focus().toggleBulletList().run()}
-              aria-label="Bullet list"
             >
-              <List className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Bullet list</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("orderedList"))}
+              <List className="mr-2 size-4" />
+              Bullet List
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              aria-label="Ordered list"
             >
-              <ListOrdered className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Ordered list</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("taskList"))}
+              <ListOrdered className="mr-2 size-4" />
+              Numbered List
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => editor.chain().focus().toggleTaskList().run()}
-              aria-label="Task list"
             >
-              <ListChecks className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Task list</TooltipContent>
-        </Tooltip>
-        <Separator orientation="vertical" className="mx-2 h-5" />
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("blockquote"))}
+              <ListChecks className="mr-2 size-4" />
+              Task List
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
               onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              aria-label="Quote"
             >
-              <Quote className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Quote</TooltipContent>
-        </Tooltip>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              size="sm"
-              variant="ghost"
-              className={itemCls(editor.isActive("codeBlock"))}
+              <Quote className="mr-2 size-4" />
+              Quote
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              aria-label="Code block"
             >
-              <Code className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Code block</TooltipContent>
-        </Tooltip>
-        <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className={itemCls(editor.isActive("link"))}
-                  aria-label="Link"
-                >
-                  <Link className="size-4" />
-                </Button>
-              </PopoverTrigger>
-            </TooltipTrigger>
-            <TooltipContent>Link</TooltipContent>
-          </Tooltip>
-          <PopoverContent className="w-80">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="link-url">URL</Label>
-                <Input
-                  id="link-url"
-                  value={linkUrl}
-                  onChange={e => setLinkUrl(e.target.value)}
-                  placeholder="https://example.com"
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    editor.chain().focus().unsetLink().run();
-                    setIsPopoverOpen(false);
-                  }}
-                >
-                  Remove
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    if (linkUrl) {
-                      editor.chain().focus().setLink({ href: linkUrl }).run();
-                    }
-                    setIsPopoverOpen(false);
-                  }}
-                >
-                  Set Link
-                </Button>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+              <Code className="mr-2 size-4" />
+              Code Block
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                const attrs = editor.getAttributes("link");
+                setLinkUrl(attrs.href || "");
+                setIsPopoverOpen(true);
+              }}
+            >
+              <Link className="mr-2 size-4" />
+              Link
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       <Button
         size="sm"

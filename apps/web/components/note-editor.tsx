@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -28,7 +28,7 @@ import {
   Redo,
 } from "lucide-react";
 // @ts-ignore
-import "./styles.css";
+import "./note-styles.css";
 
 // Debounce helper
 const createDebounced = <T extends (...args: any[]) => void>(
@@ -61,7 +61,7 @@ export function NoteEditor({
       Blockquote,
       CodeBlock,
       Placeholder.configure({
-        placeholder: 'Start typing... Use "/" for commands.',
+        placeholder: 'Start typing...',
         emptyEditorClass: "is-editor-empty text-muted-foreground",
       }),
     ],

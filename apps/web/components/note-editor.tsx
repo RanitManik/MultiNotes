@@ -24,6 +24,8 @@ import {
   ListOrdered,
   Quote,
   Code,
+  Undo,
+  Redo,
 } from "lucide-react";
 // @ts-ignore
 import "./styles.css";
@@ -112,6 +114,40 @@ function Toolbar({ editor }: { editor: any }) {
 
   return (
     <div className="relative flex w-full items-center gap-1 px-3 py-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={itemCls(false)}
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            aria-label="Undo"
+          >
+            <Undo className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Undo</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={itemCls(false)}
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            aria-label="Redo"
+          >
+            <Redo className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Redo</TooltipContent>
+      </Tooltip>
+
+      <Separator orientation="vertical" className="mx-2 h-6" />
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

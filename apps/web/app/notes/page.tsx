@@ -219,7 +219,7 @@ export default function NotesDashboard() {
   useEffect(() => {
     const token = localStorage.getItem("auth:token");
     if (!token) {
-      router.push("/");
+      router.push("/auth/login");
       return;
     }
 
@@ -241,7 +241,7 @@ export default function NotesDashboard() {
       });
     } catch {
       localStorage.removeItem("auth:token");
-      router.push("/");
+      router.push("/auth/login");
       return;
     }
   }, [router]);
@@ -416,7 +416,7 @@ export default function NotesDashboard() {
 
   const handleLogout = () => {
     localStorage.removeItem("auth:token");
-    router.push("/");
+    router.push("/auth/login");
   };
 
   // Handler for the upgrade process.
@@ -785,7 +785,7 @@ function SidebarContent({
                 variant="secondary"
                 className="px-1.5 py-0.5 text-xs font-medium"
               >
-                {tenant?.plan === "FREE" ? "Free" : "Pro"}
+                {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
               </Badge>
             </div>
             <p className="text-muted-foreground truncate text-xs">
@@ -1192,6 +1192,39 @@ function NoteEditorContainer({
     setDirty(false);
   };
 
+  // Prevent closing window with unsaved changes
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (dirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    if (dirty) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    } else {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [dirty]);
+
+  // Keyboard shortcut for save (Ctrl+S / Cmd+S)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        if (dirty && !saving) {
+          handleManualSave();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [dirty, saving, handleManualSave]);
+
   if (loading) {
     return (
       <div className="flex h-full flex-col">
@@ -1228,7 +1261,7 @@ function NoteEditorContainer({
           size="sm"
           onClick={handleManualSave}
           disabled={!dirty || saving}
-          variant="outline"
+          variant="default"
         >
           <Save className="mr-1.5 size-4" />
           {saving ? "Saving..." : "Save"}

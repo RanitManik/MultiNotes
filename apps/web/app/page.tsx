@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -10,17 +10,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Loader2, Mail, Lock } from "lucide-react";
+import { FileText, Users, Shield } from "lucide-react";
 
-export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+export default function LandingPage() {
   const router = useRouter();
 
   useEffect(() => {
@@ -45,115 +37,113 @@ export default function LoginPage() {
       // Remove invalid token
       localStorage.removeItem("auth:token");
     }
-    setCheckingAuth(false);
   }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        localStorage.setItem("auth:token", data.token);
-        router.push("/notes");
-      } else {
-        setError(data.error || "Login failed");
-      }
-    } catch {
-      setError("Network error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (checkingAuth) {
-    return (
-      <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br">
-        <div className="text-center">
-          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-foreground text-2xl font-bold">
-            Welcome to MultiNotes
-          </CardTitle>
-          <CardDescription>
-            Sign in to your account to access your notes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-          </form>
-          <div className="text-muted-foreground mt-6 text-center text-sm">
-            <p>Test accounts available:</p>
-            <p>Acme: admin@acme.test / password</p>
-            <p>Acme: user@acme.test / password</p>
-            <p>Globex: admin@globex.test / password</p>
-            <p>Globex: user@globex.test / password</p>
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted">
+      {/* Header */}
+      <header className="border-b bg-background/80 backdrop-blur-sm">
+        <div className="container mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <FileText className="h-8 w-8 text-primary" />
+            <span className="text-2xl font-bold">MultiNotes</span>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex gap-4">
+            <Button variant="ghost" onClick={() => router.push("/auth/login")}>
+              Sign In
+            </Button>
+            <Button onClick={() => router.push("/auth/register")}>
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="container mx-auto px-4 py-16">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6">
+            Organize Your Thoughts,<br />
+            <span className="text-primary">Collaborate Seamlessly</span>
+          </h1>
+          <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            MultiNotes is a powerful note-taking platform designed for teams.
+            Create, share, and organize your ideas with rich formatting and
+            real-time collaboration.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button size="lg" onClick={() => router.push("/auth/register")}>
+              Start Free Trial
+            </Button>
+            <Button size="lg" variant="outline" onClick={() => router.push("/auth/login")}>
+              Sign In
+            </Button>
+          </div>
+        </div>
+
+        {/* Features */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <Card>
+            <CardHeader>
+              <FileText className="h-12 w-12 text-primary mb-4" />
+              <CardTitle>Rich Text Editor</CardTitle>
+              <CardDescription>
+                Write with style using our powerful editor with support for
+                headings, lists, code blocks, and more.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Users className="h-12 w-12 text-primary mb-4" />
+              <CardTitle>Team Collaboration</CardTitle>
+              <CardDescription>
+                Invite team members to your organization and collaborate
+                on notes in real-time.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Shield className="h-12 w-12 text-primary mb-4" />
+              <CardTitle>Secure & Private</CardTitle>
+              <CardDescription>
+                Your notes are encrypted and stored securely. Control who
+                has access to your organization's content.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+
+        {/* CTA Section */}
+        <Card className="bg-primary text-primary-foreground">
+          <CardContent className="p-8 text-center">
+            <h2 className="text-3xl font-bold mb-4">
+              Ready to get organized?
+            </h2>
+            <p className="text-lg mb-6 opacity-90">
+              Join thousands of teams already using MultiNotes to streamline
+              their workflow and boost productivity.
+            </p>
+            <Button
+              size="lg"
+              variant="secondary"
+              onClick={() => router.push("/auth/register")}
+            >
+              Create Your Account
+            </Button>
+          </CardContent>
+        </Card>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t bg-background/80 backdrop-blur-sm mt-16">
+        <div className="container mx-auto px-4 py-8 text-center text-muted-foreground">
+          <p>&copy; 2025 MultiNotes. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }

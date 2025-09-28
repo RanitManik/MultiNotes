@@ -1006,13 +1006,26 @@ function SidebarContent({
             </p>
           )}
           {(notes || []).map((note: Note) => (
-            <button
+            <div
               key={note.id}
+              role="button"
+              tabIndex={0}
               className={cn(
-                "hover:bg-accent/70 group w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-none focus-visible:ring-2",
+                "hover:bg-accent/70 group w-full rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2",
                 selectedId === note.id && "bg-accent"
               )}
               onClick={() => onSelectNote(note.id)}
+              onKeyDown={e => {
+                // Activate on Enter or Space for accessibility
+                if (
+                  e.key === "Enter" ||
+                  e.key === " " ||
+                  e.key === "Spacebar"
+                ) {
+                  e.preventDefault();
+                  onSelectNote(note.id);
+                }
+              }}
               aria-current={selectedId === note.id ? "page" : undefined}
             >
               <div className="grid grid-cols-[1fr_auto] items-center gap-2">
@@ -1022,7 +1035,7 @@ function SidebarContent({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-muted-foreground hover:text-foreground opacity-0 transition-all focus:ring-0 group-hover:opacity-100 data-[state=open]:opacity-100"
+                      className="text-muted-foreground hover:text-foreground opacity-0 transition-all focus:opacity-100 focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"
                       onClick={e => e.stopPropagation()}
                     >
                       <MoreHorizontal className="h-4 w-4" />
@@ -1051,7 +1064,7 @@ function SidebarContent({
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-            </button>
+            </div>
           ))}
         </nav>
       </ScrollArea>

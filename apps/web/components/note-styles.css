@@ -259,8 +259,10 @@
 
   /* Highlight styles */
   .tiptap mark {
+    /* background-color may be set inline by TipTap when using multicolor; keep var as fallback */
     background-color: var(--chart-1);
-    color: var(--primary-foreground);
+    /* Force highlight text to always be white for readability */
+    color: #ffffff !important;
     padding: 0.125rem 0.25rem;
     border-radius: 0.25rem;
     font-weight: 500;

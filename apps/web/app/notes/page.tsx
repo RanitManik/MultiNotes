@@ -1139,14 +1139,9 @@ function NoteEditorContainer({
   const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Update local state when note data changes
-  useEffect(() => {
-    if (note) {
-      setCurrentTitle(note.title);
-      setCurrentContent(note.content);
-      setDirty(false);
-    }
-  }, [note]);
+  const handleEditorUpdate = useCallback(() => {
+    setDirty(true);
+  }, []);
 
   const editor = useEditor({
     content: defaultDoc,
@@ -1177,36 +1172,32 @@ function NoteEditorContainer({
           "prose prose-sm md:prose-base max-w-none py-6 px-4 md:px-6 text-foreground",
       },
     },
+    onUpdate: handleEditorUpdate,
   });
 
-  // Set editor content when note is loaded
+  // Update local state when note data changes
   useEffect(() => {
-    if (editor && currentContent) {
-      editor.commands.setContent(currentContent);
+    if (note) {
+      setCurrentTitle(note.title);
+      setCurrentContent(note.content);
+      setDirty(false);
+      if (editor) {
+        editor.commands.setContent(note.content, false);
+      }
     }
-  }, [editor, currentContent]);
-
-  // Handle editor content changes
-  useEffect(() => {
-    if (!editor) return;
-    const handler = () => {
-      const json = editor.getJSON();
-      setCurrentContent(json);
-      setDirty(true);
-    };
-    editor.on("update", handler);
-    return () => {
-      editor.off("update", handler);
-    };
-  }, [editor]);
+  }, [note, editor]);
 
   // Save to API
   const saveToAPI = useCallback(
     async (data: { title?: string; content?: any }) => {
+      const contentToSave = data.content || editor?.getJSON();
       setSaving(true);
       try {
         await toast.promise(
-          updateNoteMutation.mutateAsync({ id: noteId, data }),
+          updateNoteMutation.mutateAsync({
+            id: noteId,
+            data: { ...data, content: contentToSave },
+          }),
           {
             loading: "Saving note...",
             success: "Note saved!",
@@ -1225,7 +1216,7 @@ function NoteEditorContainer({
         setSaving(false);
       }
     },
-    [noteId, onNoteUpdate, updateNoteMutation]
+    [noteId, onNoteUpdate, updateNoteMutation, editor]
   );
 
   // Handler for title changes. Updates local state and marks as dirty.
@@ -1236,7 +1227,7 @@ function NoteEditorContainer({
 
   // Manual save handler
   const handleManualSave = async () => {
-    await saveToAPI({ title: currentTitle, content: currentContent });
+    await saveToAPI({ title: currentTitle });
   };
 
   // Prevent closing window with unsaved changes

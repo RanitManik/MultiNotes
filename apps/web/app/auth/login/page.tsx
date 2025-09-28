@@ -98,7 +98,7 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
                 <Mail className="h-4 w-4" />
@@ -156,13 +156,6 @@ export default function LoginPage() {
                 Sign up
               </button>
             </p>
-          </div>
-          <div className="text-muted-foreground mt-6 text-center text-sm">
-            <p>Test accounts available:</p>
-            <p>Acme: admin@acme.test / password</p>
-            <p>Acme: user@acme.test / password</p>
-            <p>Globex: admin@globex.test / password</p>
-            <p>Globex: user@globex.test / password</p>
           </div>
         </CardContent>
       </Card>

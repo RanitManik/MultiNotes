@@ -26,11 +26,9 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog";
 import { Label } from "@workspace/ui/components/label";
 import { Badge } from "@workspace/ui/components/badge";
-import { ThemeToggle } from "@workspace/ui/components/theme-toggle";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
@@ -47,7 +45,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { NoteEditor } from "../../components/note-editor";
+import { NoteEditor, Toolbar } from "../../components/note-editor";
+import { useEditor } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import Heading from "@tiptap/extension-heading";
+import BulletList from "@tiptap/extension-bullet-list";
+import OrderedList from "@tiptap/extension-ordered-list";
+import Blockquote from "@tiptap/extension-blockquote";
+import CodeBlock from "@tiptap/extension-code-block";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
+import Link from "@tiptap/extension-link";
+
+const defaultDoc = {
+  type: "doc",
+  content: [
+    {
+      type: "paragraph",
+      content: [
+        {
+          type: "text",
+          text: "Start writing your note here...",
+        },
+      ],
+    },
+  ],
+};
 import {
   Trash2,
   Plus,
@@ -80,63 +104,25 @@ import {
 import { cn } from "@workspace/ui/lib/utils";
 import { toast } from "sonner";
 import Confetti from "react-confetti";
-import {
-  fetchNotes,
-  createNote,
-  updateNote,
-  deleteNote,
-  upgradeTenant,
-  inviteUser,
-  getTenantInfo,
-  getNoteById,
-} from "../actions/notes";
 import { useTheme } from "next-themes";
 
+// TanStack Query imports
+import {
+  useNotes,
+  useTenant,
+  useCreateNote,
+  useUpdateNote,
+  useDeleteNote,
+  useUpgradeTenant,
+  useInviteUser,
+  useNote,
+  type Note,
+  type Tenant,
+  type User as UserType,
+} from "@/lib/api";
+
 // --- Type Definitions ---
-// Defines the structure for a note item in the list.
-type Note = {
-  id: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-  content?: string;
-  author?: { email: string };
-  isOptimistic?: boolean;
-};
-
-// Defines the structure for the user's account/tenant information.
-type TenantInfo = {
-  slug: string;
-  plan: "FREE" | "PRO";
-  noteCount: number;
-  limit: number | null; // null means unlimited notes for PRO plan.
-  email?: string | null; // optional user email to display in UI
-};
-
-// User type for authentication
-type User = {
-  role: "admin" | "member";
-  tenantSlug: string;
-  tenantPlan: "free" | "pro";
-};
-
-// Defines the structure for a single note including its content,
-// primarily used for local storage.
-type LocalNote = {
-  id: string;
-  title: string;
-  createdAt: string;
-  updatedAt: string;
-  content: any; // Content can be any JSON structure from the editor.
-};
-
-// --- API Service Layer ---
-// Real API calls to the backend
-const getAuthHeaders = (): Record<string, string> => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("auth:token") : null;
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+// Types are imported from @/lib/api
 
 // --- Utility Hook ---
 // A simple React hook to get the current window dimensions for the confetti effect.
@@ -156,22 +142,32 @@ function useWindowSize() {
 export default function NotesDashboard() {
   const router = useRouter();
 
-  // State for the list of notes
-  const [notes, setNotes] = useState<Note[] | null>(null);
-  const [notesLoading, setNotesLoading] = useState(true);
-  const [notesError, setNotesError] = useState<Error | null>(null);
+  // User state
+  const [user, setUser] = useState<UserType | null>(null);
 
-  // State for user/tenant information
-  const [tenant, setTenant] = useState<TenantInfo>({
+  // TanStack Query hooks
+  const {
+    data: notesData,
+    isLoading: notesLoading,
+    error: notesError,
+  } = useNotes();
+  const { data: tenantData, isLoading: tenantLoading } = useTenant();
+
+  // TanStack Query mutations
+  const createNoteMutation = useCreateNote();
+  const updateNoteMutation = useUpdateNote();
+  const deleteNoteMutation = useDeleteNote();
+  const upgradeTenantMutation = useUpgradeTenant();
+  const inviteUserMutation = useInviteUser();
+
+  // Derived data
+  const notes = notesData || [];
+  const tenant = tenantData || {
     slug: "tenant",
     plan: "FREE",
     noteCount: 0,
     limit: 3,
-  });
-  const [tenantLoading, setTenantLoading] = useState(true);
-
-  // User state
-  const [user, setUser] = useState<User | null>(null);
+  };
 
   // State for managing the currently selected note
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -190,17 +186,9 @@ export default function NotesDashboard() {
   const [editTitle, setEditTitle] = useState("");
   const [error, setError] = useState("");
 
-  // A simple counter to trigger a manual refetch of all data
-  const [refetchTrigger, setRefetchTrigger] = useState(0);
-  const refetchAll = () => setRefetchTrigger(t => t + 1);
-
   // Function to update a note in the local notes array
   const updateNoteInList = (noteId: string, updates: Partial<Note>) => {
-    setNotes(notes =>
-      notes
-        ? notes.map(n => (n.id === noteId ? { ...n, ...updates } : n))
-        : null
-    );
+    // TanStack Query handles cache invalidation automatically
   };
 
   // State for the confetti and mobile sheet
@@ -246,42 +234,12 @@ export default function NotesDashboard() {
     }
   }, [router]);
 
-  // Main data fetching effect. Runs when user is set and when `refetchTrigger` changes.
+  // Automatically select the first note if none is selected and there are notes
   useEffect(() => {
-    if (!user) return;
-
-    const fetchAllData = async () => {
-      setNotesLoading(true);
-      setTenantLoading(true);
-      try {
-        const toastResult = await toast.promise(
-          Promise.all([fetchNotes(), getTenantInfo()]),
-          {
-            loading: "Loading your notes...",
-            success: "Notes loaded successfully",
-            error: "Failed to load your notes.",
-          }
-        );
-        const [notesData, tenantData] = (toastResult as any)?.unwrap
-          ? await (toastResult as any).unwrap()
-          : toastResult;
-        setNotes(notesData);
-        setTenant(tenantData);
-
-        // Automatically select the first note if none is selected and there are notes
-        if (!selectedId && notesData.length > 0) {
-          setSelectedId(notesData[0]!.id);
-        }
-        setNotesError(null);
-      } catch (err) {
-        setNotesError(err as Error);
-      } finally {
-        setNotesLoading(false);
-        setTenantLoading(false);
-      }
-    };
-    fetchAllData();
-  }, [refetchTrigger, user]);
+    if (!selectedId && notes.length > 0) {
+      setSelectedId(notes[0]!.id);
+    }
+  }, [notes, selectedId]);
 
   // Derived state to determine if the user has hit their note limit.
   const limitReached = useMemo(() => {
@@ -310,16 +268,11 @@ export default function NotesDashboard() {
         type: "doc",
         content: [
           {
-            type: "heading",
-            attrs: { level: 1 },
-            content: [{ type: "text", text: "Welcome 👋" }],
-          },
-          {
             type: "paragraph",
             content: [
               {
                 type: "text",
-                text: "Start capturing your ideas here. Use H1/H2/H3, lists, quotes, and code blocks.",
+                text: "Start writing your note here...",
               },
             ],
           },
@@ -332,17 +285,20 @@ export default function NotesDashboard() {
     setNewTitle("");
     setError("");
 
-    const toastResult = await toast.promise(createNote(noteData), {
-      loading: "Creating note...",
-      success: "Note created successfully",
-      error: "Failed to create note",
-    });
-    const newNote = (toastResult as any)?.unwrap
-      ? await (toastResult as any).unwrap()
-      : toastResult;
-    setSelectedId(newNote.id);
-    refetchAll(); // Refresh data to update note count.
-    setIsSheetOpen(false); // Close mobile sheet after creating.
+    try {
+      const result = (await toast.promise(
+        createNoteMutation.mutateAsync(noteData),
+        {
+          loading: "Creating note...",
+          success: "Note created successfully",
+          error: "Failed to create note",
+        }
+      )) as unknown as Note;
+      setSelectedId(result.id);
+      setIsSheetOpen(false);
+    } catch (err) {
+      //
+    }
   };
 
   const handleEditNote = (note: Note) => {
@@ -362,17 +318,22 @@ export default function NotesDashboard() {
     setEditTitle("");
     setError("");
 
-    await toast.promise(updateNote(editingNote.id, noteData), {
-      loading: "Updating note...",
-      success: () => {
-        updateNoteInList(editingNote.id, {
-          title: editTitle,
-          updatedAt: new Date().toISOString(),
-        });
-        return "Note updated successfully";
-      },
-      error: "Failed to update note",
-    });
+    try {
+      await toast.promise(
+        updateNoteMutation.mutateAsync({ id: editingNote.id, data: noteData }),
+        {
+          loading: "Updating note...",
+          success: "Note updated successfully",
+          error: "Failed to update note",
+        }
+      );
+      updateNoteInList(editingNote.id, {
+        title: editTitle,
+        updated_at: new Date().toISOString(),
+      });
+    } catch (err) {
+      //
+    }
   };
 
   const handleDeleteNote = async (id: string) => {
@@ -381,16 +342,17 @@ export default function NotesDashboard() {
 
   const confirmDeleteNote = async () => {
     if (!deleteNoteId) return;
-    await toast.promise(deleteNote(deleteNoteId), {
-      loading: "Deleting note...",
-      success: () => {
-        const remaining = (notes || []).filter(n => n.id !== deleteNoteId);
-        setSelectedId(remaining[0]?.id || null); // Select the next note or none.
-        refetchAll();
-        return "Note deleted successfully";
-      },
-      error: "Failed to delete note",
-    });
+    try {
+      await toast.promise(deleteNoteMutation.mutateAsync(deleteNoteId), {
+        loading: "Deleting note...",
+        success: "Note deleted successfully",
+        error: "Failed to delete note",
+      });
+      const remaining = (notes || []).filter((n: any) => n.id !== deleteNoteId);
+      setSelectedId(remaining[0]?.id || null);
+    } catch (err) {
+      //
+    }
     setDeleteNoteId(null);
   };
 
@@ -401,17 +363,24 @@ export default function NotesDashboard() {
 
   const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    await toast.promise(inviteUser({ email: inviteEmail, role: inviteRole }), {
-      loading: "Inviting user...",
-      success: `User ${inviteEmail} invited successfully!`,
-      error: err => {
-        setError("Failed to invite user");
-        return "Failed to invite user";
-      },
-    });
-    setShowInviteForm(false);
-    setInviteEmail("");
-    setInviteRole("member");
+    try {
+      await toast.promise(
+        inviteUserMutation.mutateAsync({
+          email: inviteEmail,
+          role: inviteRole,
+        }),
+        {
+          loading: "Inviting user...",
+          success: `User ${inviteEmail} invited successfully!`,
+          error: "Failed to invite user",
+        }
+      );
+      setShowInviteForm(false);
+      setInviteEmail("");
+      setInviteRole("member");
+    } catch (err: any) {
+      //
+    }
   };
 
   const handleLogout = () => {
@@ -424,49 +393,53 @@ export default function NotesDashboard() {
   const onUpgrade = async () => {
     if (upgradingRef.current) return;
     upgradingRef.current = true;
-    const toastResult = await toast.promise(upgradeTenant(tenant.slug), {
-      loading: "Upgrading to Pro...",
-      success: result => {
-        // Update token with new one containing updated tenant plan
-        localStorage.setItem("auth:token", result.token);
-
-        // Decode the new token to update user state
-        const parts = result.token.split(".");
-        if (parts.length === 3 && parts[1]) {
-          const payload = JSON.parse(atob(parts[1]));
-          setUser({
-            role: payload.role,
-            tenantSlug: payload.tenantSlug,
-            tenantPlan: payload.tenantPlan,
-          });
+    try {
+      const result = (await toast.promise(
+        upgradeTenantMutation.mutateAsync(tenant.slug),
+        {
+          loading: "Upgrading to Pro...",
+          success: "Upgraded to Pro successfully!",
+          error: "Upgrade failed to process.",
         }
+      )) as unknown as { token: string };
+      // Update token with new one containing updated tenant plan
+      localStorage.setItem("auth:token", result.token);
 
-        // 🎊 Show confetti and fade it out smoothly before hiding.
-        const DURATION = 6000; // total confetti duration
-        const FADE_MS = 1000; // fade duration at the end
-        // Clear any existing timers
-        if (confettiTimers.current.fade)
-          clearTimeout(confettiTimers.current.fade);
-        if (confettiTimers.current.hide)
-          clearTimeout(confettiTimers.current.hide);
+      // Decode the new token to update user state
+      const parts = result.token.split(".");
+      if (parts.length === 3 && parts[1]) {
+        const payload = JSON.parse(atob(parts[1]));
+        setUser({
+          role: payload.role,
+          tenantSlug: payload.tenantSlug,
+          tenantPlan: payload.tenantPlan,
+        });
+      }
 
+      // 🎊 Show confetti and fade it out smoothly before hiding.
+      const DURATION = 6000; // total confetti duration
+      const FADE_MS = 1000; // fade duration at the end
+      // Clear any existing timers
+      if (confettiTimers.current.fade)
+        clearTimeout(confettiTimers.current.fade);
+      if (confettiTimers.current.hide)
+        clearTimeout(confettiTimers.current.hide);
+
+      setConfettiFading(false);
+      setShowConfetti(true);
+      // Schedule fade to start shortly before the end
+      confettiTimers.current.fade = setTimeout(
+        () => setConfettiFading(true),
+        DURATION - FADE_MS
+      ) as unknown as number;
+      // Hide after the full duration
+      confettiTimers.current.hide = setTimeout(() => {
+        setShowConfetti(false);
         setConfettiFading(false);
-        setShowConfetti(true);
-        // Schedule fade to start shortly before the end
-        confettiTimers.current.fade = setTimeout(
-          () => setConfettiFading(true),
-          DURATION - FADE_MS
-        ) as unknown as number;
-        // Hide after the full duration
-        confettiTimers.current.hide = setTimeout(() => {
-          setShowConfetti(false);
-          setConfettiFading(false);
-        }, DURATION) as unknown as number;
-        refetchAll();
-        return "Upgraded to Pro successfully!";
-      },
-      error: "Upgrade failed to process.",
-    });
+      }, DURATION) as unknown as number;
+    } catch (err) {
+      //
+    }
     upgradingRef.current = false;
   };
 
@@ -533,10 +506,20 @@ export default function NotesDashboard() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowCreateForm(false)}
+                disabled={createNoteMutation.isPending}
               >
                 Cancel
               </Button>
-              <Button type="submit">Create Note</Button>
+              <Button type="submit" disabled={createNoteMutation.isPending}>
+                {createNoteMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create Note"
+                )}
+              </Button>
             </div>
           </form>
         </DialogContent>
@@ -565,10 +548,20 @@ export default function NotesDashboard() {
                 type="button"
                 variant="outline"
                 onClick={() => setShowEditForm(false)}
+                disabled={updateNoteMutation.isPending}
               >
                 Cancel
               </Button>
-              <Button type="submit">Update Note</Button>
+              <Button type="submit" disabled={updateNoteMutation.isPending}>
+                {updateNoteMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  "Update Note"
+                )}
+              </Button>
             </div>
           </form>
         </DialogContent>
@@ -618,10 +611,20 @@ export default function NotesDashboard() {
                   type="button"
                   variant="outline"
                   onClick={() => setShowInviteForm(false)}
+                  disabled={inviteUserMutation.isPending}
                 >
                   Cancel
                 </Button>
-                <Button type="submit">Invite User</Button>
+                <Button type="submit" disabled={inviteUserMutation.isPending}>
+                  {inviteUserMutation.isPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Inviting...
+                    </>
+                  ) : (
+                    "Invite User"
+                  )}
+                </Button>
               </div>
             </form>
           </DialogContent>
@@ -658,6 +661,7 @@ export default function NotesDashboard() {
             onLogout={handleLogout}
             deleteNoteId={deleteNoteId}
             setDeleteNoteId={setDeleteNoteId}
+            deleteNotePending={deleteNoteMutation.isPending}
           />
         </aside>
 
@@ -694,6 +698,7 @@ export default function NotesDashboard() {
                 onLogout={handleLogout}
                 deleteNoteId={deleteNoteId}
                 setDeleteNoteId={setDeleteNoteId}
+                deleteNotePending={deleteNoteMutation.isPending}
               />
             </SheetContent>
           </Topbar>
@@ -742,6 +747,7 @@ function SidebarContent({
   onLogout,
   deleteNoteId,
   setDeleteNoteId,
+  deleteNotePending,
 }: any) {
   // Show skeleton loading when either tenant or notes are loading
   const isLoading = tenantLoading || notesLoading;
@@ -919,12 +925,22 @@ function SidebarContent({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteNotePending}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive hover:bg-destructive/90"
               onClick={onConfirmDelete}
+              disabled={deleteNotePending}
             >
-              Delete
+              {deleteNotePending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1094,7 +1110,7 @@ function UpgradeBanner({ onUpgrade }: { onUpgrade: () => void }) {
         You’ve reached the Free plan limit. Upgrade to Pro for unlimited notes.
       </p>
       <div className="mt-2">
-        <Button size="sm" onClick={onUpgrade} variant="secondary">
+        <Button size="sm" onClick={onUpgrade} className="w-full">
           <Sparkles className="mr-1.5 size-4" />
           Upgrade to Pro
         </Button>
@@ -1112,68 +1128,104 @@ function NoteEditorContainer({
   noteId: string;
   onNoteUpdate: (noteId: string, updates: Partial<Note>) => void;
 }) {
-  const [note, setNote] = useState<LocalNote | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const { data: noteData, isLoading, error } = useNote(noteId);
+  const updateNoteMutation = useUpdateNote();
 
-  // **Controlled state for the title input to prevent bugs.**
-  const [currentTitle, setCurrentTitle] = useState("");
-
-  // State for tracking unsaved changes
+  const note = noteData;
+  const [currentTitle, setCurrentTitle] = useState(note?.title || "");
+  const [currentContent, setCurrentContent] = useState<any>(
+    note?.content || null
+  );
   const [dirty, setDirty] = useState(false);
-  const [currentContent, setCurrentContent] = useState<any>(null);
-
-  // Loading state for save operation
   const [saving, setSaving] = useState(false);
 
-  // Fetches the full note data when the `noteId` prop changes.
+  // Update local state when note data changes
   useEffect(() => {
-    const fetchNote = async () => {
-      setLoading(true);
-      try {
-        const data = await getNoteById(noteId);
-        setNote(data);
-        setCurrentTitle(data.title); // Initialize controlled input state
-        setCurrentContent(data.content);
-        setDirty(false);
-        setError(null);
-      } catch (err) {
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
+    if (note) {
+      setCurrentTitle(note.title);
+      setCurrentContent(note.content);
+      setDirty(false);
+    }
+  }, [note]);
+
+  const editor = useEditor({
+    content: defaultDoc,
+    extensions: [
+      StarterKit.configure({
+        heading: false,
+      }),
+      Heading.configure({ levels: [1, 2, 3] }),
+      BulletList,
+      OrderedList,
+      Blockquote,
+      CodeBlock,
+      TaskList,
+      TaskItem,
+      Link.configure({
+        autolink: true,
+        openOnClick: true,
+        HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
+      }),
+      Placeholder.configure({
+        placeholder: "Start typing...",
+        emptyEditorClass: "is-editor-empty text-muted-foreground",
+      }),
+    ],
+    editorProps: {
+      attributes: {
+        class:
+          "prose prose-sm md:prose-base max-w-none py-6 px-4 md:px-6 text-foreground",
+      },
+    },
+  });
+
+  // Set editor content when note is loaded
+  useEffect(() => {
+    if (editor && currentContent) {
+      editor.commands.setContent(currentContent);
+    }
+  }, [editor, currentContent]);
+
+  // Handle editor content changes
+  useEffect(() => {
+    if (!editor) return;
+    const handler = () => {
+      const json = editor.getJSON();
+      setCurrentContent(json);
+      setDirty(true);
     };
-    fetchNote();
-  }, [noteId]);
+    editor.on("update", handler);
+    return () => {
+      editor.off("update", handler);
+    };
+  }, [editor]);
 
   // Save to API
   const saveToAPI = useCallback(
     async (data: { title?: string; content?: any }) => {
       setSaving(true);
-      await toast.promise(
-        updateNote(noteId, {
-          title: data.title || "",
-          content: data.content || "",
-        }),
-        {
-          loading: "Saving note...",
-          success: () => {
-            const updates: Partial<Note> = {
-              updatedAt: new Date().toISOString(),
-            };
-            if (data.title !== undefined) updates.title = data.title;
-            onNoteUpdate(noteId, updates);
-            setSaving(false);
-            return "Note saved!";
-          },
-          error: () => {
-            setSaving(false);
-            return "Failed to save note.";
-          },
-        }
-      );
+      try {
+        await toast.promise(
+          updateNoteMutation.mutateAsync({ id: noteId, data }),
+          {
+            loading: "Saving note...",
+            success: "Note saved!",
+            error: "Failed to save note.",
+          }
+        );
+        const updates: Partial<Note> = {
+          updated_at: new Date().toISOString(),
+        };
+        if (data.title !== undefined) updates.title = data.title;
+        onNoteUpdate(noteId, updates);
+        setDirty(false);
+      } catch (err) {
+        //
+      } finally {
+        setSaving(false);
+      }
     },
-    [noteId, onNoteUpdate]
+    [noteId, onNoteUpdate, updateNoteMutation]
   );
 
   // Handler for title changes. Updates local state and marks as dirty.
@@ -1182,16 +1234,9 @@ function NoteEditorContainer({
     setDirty(true);
   };
 
-  // Handler for content changes. Updates local state and marks as dirty.
-  const onContentChange = useCallback((content: any) => {
-    setCurrentContent(content);
-    setDirty(true);
-  }, []);
-
   // Manual save handler
   const handleManualSave = async () => {
     await saveToAPI({ title: currentTitle, content: currentContent });
-    setDirty(false);
   };
 
   // Prevent closing window with unsaved changes
@@ -1227,7 +1272,7 @@ function NoteEditorContainer({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [dirty, saving, handleManualSave]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex h-full flex-col">
         <div className="flex items-center gap-2 px-4 pb-2 pt-4">
@@ -1252,27 +1297,21 @@ function NoteEditorContainer({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 px-4 pb-2 pt-4">
-        <Input
-          className="h-10 flex-1 border-none text-xl font-bold focus-visible:ring-0 md:text-2xl"
-          value={currentTitle} // This is now a controlled component.
+      <Toolbar
+        editor={editor}
+        onSave={handleManualSave}
+        disabled={!dirty}
+        saving={saving}
+      />
+      <div className="mx-auto mt-6 w-full max-w-4xl px-4 md:px-6">
+        <input
+          className="text-foreground w-full resize-none border-none bg-transparent text-4xl font-bold focus:outline-none"
+          value={currentTitle}
           onChange={e => onTitleChange(e.target.value)}
           placeholder="Untitled"
         />
-        <Button
-          size="sm"
-          onClick={handleManualSave}
-          disabled={!dirty || saving}
-          variant="default"
-        >
-          <Save className="mr-1.5 size-4" />
-          {saving ? "Saving..." : "Save"}
-        </Button>
       </div>
-      <NoteEditor
-        initialContent={note.content}
-        onUpdateJSON={onContentChange}
-      />
+      <NoteEditor editor={editor} />
     </div>
   );
 }

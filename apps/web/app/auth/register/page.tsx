@@ -66,7 +66,7 @@ export default function RegisterPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleRegister} className="space-y-4">
+          <form onSubmit={handleRegister} className="space-y-6">
             <div className="space-y-2">
               <Label
                 htmlFor="registerEmail"

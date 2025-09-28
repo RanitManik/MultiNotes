@@ -1,5 +1,6 @@
 // actions/notes.ts
 // API service functions for notes management
+// DEPRECATED: Use Apollo Client with REST link instead
 
 const getAuthHeaders = (): Record<string, string> => {
   const token =

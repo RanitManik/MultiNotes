@@ -83,24 +83,19 @@ import {
   Plus,
   Sparkles,
   Menu,
-  Save,
   LogOut,
   Edit,
   User,
   Loader2,
   AlertTriangle,
   UserPlus,
-  BadgeCheck,
-  Bell,
   ChevronsUpDown,
-  CreditCard,
   Moon,
   Sun,
   MoreHorizontal,
   Copy,
   Eye,
   EyeOff,
-  Shuffle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -168,6 +163,14 @@ function useWindowSize() {
 
 // --- Main Dashboard Component ---
 export default function NotesDashboard() {
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      <NotesDashboardContent />
+    </React.Suspense>
+  );
+}
+
+function NotesDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -293,7 +296,7 @@ export default function NotesDashboard() {
       newSearchParams.set("note", firstNoteId);
       router.replace(`?${newSearchParams.toString()}`, { scroll: false });
     }
-  }, [notes, router]); // Only run when notes load or router changes
+  }, [notes, router, searchParams, selectedId]);
 
   // Derived state to determine if the user has hit their note limit.
   const limitReached = useMemo(() => {
@@ -521,7 +524,7 @@ export default function NotesDashboard() {
   }, []);
 
   return (
-    <>
+    <React.Suspense fallback={<div>Loading...</div>}>
       {/* Confetti overlay with smooth fade-out transition */}
       {showConfetti && (
         <div
@@ -878,7 +881,7 @@ export default function NotesDashboard() {
           </div>
         </section>
       </div>
-    </>
+    </React.Suspense>
   );
 }
 

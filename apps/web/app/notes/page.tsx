@@ -1386,7 +1386,7 @@ function NoteEditorContainer({
         disabled={!dirty}
         saving={saving}
       />
-      <ScrollArea className="h-[calc(100vh-50px)]">
+      <ScrollArea className="h-[calc(100vh-100px)] md:h-[calc(100vh-50px)]">
         <div className="mx-auto mt-6 w-full max-w-4xl px-4 md:px-6">
           <input
             className="text-foreground w-full resize-none border-none bg-transparent text-4xl font-bold focus:outline-none"

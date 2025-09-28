@@ -11,21 +11,15 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
-import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@workspace/ui/components/tooltip";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@workspace/ui/components/sheet";
+import { SheetContent } from "@workspace/ui/components/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -33,7 +27,6 @@ import {
   AlertDialogTitle,
 } from "@workspace/ui/components/alert-dialog";
 import { Label } from "@workspace/ui/components/label";
-import { Badge } from "@workspace/ui/components/badge";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import {
@@ -51,55 +44,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { NoteEditor, Toolbar } from "../../components/note-editor";
-import { useEditor } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import Heading from "@tiptap/extension-heading";
-import TaskList from "@tiptap/extension-task-list";
-import TaskItem from "@tiptap/extension-task-item";
-import Link from "@tiptap/extension-link";
-import TextAlign from "@tiptap/extension-text-align";
-import Highlight from "@tiptap/extension-highlight";
-import Underline from "@tiptap/extension-underline";
-import Subscript from "@tiptap/extension-subscript";
-import Superscript from "@tiptap/extension-superscript";
+import { SidebarContent } from "../../components/sidebar-content";
+import { Topbar } from "../../components/topbar";
 
 // defaultDoc removed: editor should initialize empty and be populated from
 // the fetched note to avoid creating an initial undo state that contains
 // the placeholder text.
-import {
-  Trash2,
-  Plus,
-  Sparkles,
-  Menu,
-  LogOut,
-  Edit,
-  User,
-  Loader2,
-  AlertTriangle,
-  UserPlus,
-  ChevronsUpDown,
-  Moon,
-  Sun,
-  MoreHorizontal,
-  Copy,
-  Eye,
-  EyeOff,
-} from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@workspace/ui/components/dropdown-menu";
-import { cn } from "@workspace/ui/lib/utils";
+import { Loader2, AlertTriangle, Copy, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 const Confetti = React.lazy(() => import("react-confetti"));
-import { useTheme } from "next-themes";
 
 // TanStack Query imports
 import {
@@ -110,12 +63,11 @@ import {
   useDeleteNote,
   useUpgradeTenant,
   useInviteUser,
-  useNote,
   type Note,
-  type Tenant,
   type User as UserType,
 } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
+import { NoteEditorContainer } from "@/components/note-editor-container";
 
 // Utility functions
 function generateRandomPassword(): string {
@@ -306,137 +258,170 @@ function NotesDashboardContent() {
   }, [user, limitReached]);
 
   // Handlers for creating, deleting, and selecting notes.
-  const handleSelectNote = (id: string) => {
-    // If there are unsaved changes in the current editor, prompt the user
-    // before switching notes.
-    if (editorDirtyRef.current && id !== selectedId) {
-      setPendingSelectId(id);
-      setShowUnsavedDialog(true);
-      return;
-    }
+  const handleSelectNote = useCallback(
+    (id: string) => {
+      // If there are unsaved changes in the current editor, prompt the user
+      // before switching notes.
+      if (editorDirtyRef.current && id !== selectedId) {
+        setPendingSelectId(id);
+        setShowUnsavedDialog(true);
+        return;
+      }
 
-    // Proceed with selection
-    setSelectedId(id);
-    setIsSheetOpen(false); // Close mobile sheet on selection.
+      // Proceed with selection
+      setSelectedId(id);
+      setIsSheetOpen(false); // Close mobile sheet on selection.
 
-    // Update URL with the selected note
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("note", id);
-    router.replace(`?${newSearchParams.toString()}`, { scroll: false });
-  };
+      // Update URL with the selected note
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set("note", id);
+      router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+    },
+    [selectedId, searchParams, router]
+  );
 
   // Helper to actually proceed with selection (bypassing the unsaved check)
-  const handleSelectNoteProceed = (id: string) => {
-    setPendingSelectId(null);
-    setSelectedId(id);
-    setIsSheetOpen(false);
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("note", id);
-    router.replace(`?${newSearchParams.toString()}`, { scroll: false });
-  };
+  const handleSelectNoteProceed = useCallback(
+    (id: string) => {
+      setPendingSelectId(null);
+      setSelectedId(id);
+      setIsSheetOpen(false);
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set("note", id);
+      router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+    },
+    [searchParams, router]
+  );
 
   const setEditorDirtyRefFalse = () => {
     editorDirtyRef.current = false;
   };
 
-  const handleCreateNote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (limitReached) {
-      toast.error("Upgrade to Pro to create more notes.");
-      return;
-    }
-    const noteData = {
-      title: newTitle,
-      content: {
-        type: "doc",
-        content: [
-          {
-            type: "paragraph",
-            content: [
-              {
-                type: "text",
-                text: "Start writing your note here...",
-              },
-            ],
-          },
-        ],
-      },
-    };
-
-    // Close dialog and clear form immediately for optimistic UX
-    setShowCreateForm(false);
-    setNewTitle("");
-    setError("");
-
-    try {
-      await toast.promise(createNoteMutation.mutateAsync(noteData), {
-        loading: "Creating note...",
-        success: result => {
-          // Show additional toast with action to open the created note (only if we have the ID)
-          if (result?.id) {
-            setTimeout(() => {
-              toast.success(
-                `"${result.title || "Untitled"}" is ready to edit`,
+  const handleCreateNote = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (limitReached) {
+        toast.error("Upgrade to Pro to create more notes.");
+        return;
+      }
+      const noteData = {
+        title: newTitle,
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [
                 {
-                  action: {
-                    label: "Open",
-                    onClick: () => handleSelectNote(result.id),
-                  },
-                }
-              );
-            }, 500); // Small delay to show after the main success toast
-          }
-          return "Note created successfully";
+                  type: "text",
+                  text: "Start writing your note here...",
+                },
+              ],
+            },
+          ],
         },
-        error: "Failed to create note",
-      });
+      };
 
-      setIsSheetOpen(false);
-    } catch (err) {
-      toast.error("Failed to create note");
-    }
-  };
+      // Close dialog and clear form immediately for optimistic UX
+      setShowCreateForm(false);
+      setNewTitle("");
+      setError("");
 
-  const handleEditNote = (note: Note) => {
+      try {
+        await toast.promise(createNoteMutation.mutateAsync(noteData), {
+          loading: "Creating note...",
+          success: result => {
+            // Show additional toast with action to open the created note (only if we have the ID)
+            if (result?.id) {
+              setTimeout(() => {
+                toast.success(
+                  `"${result.title || "Untitled"}" is ready to edit`,
+                  {
+                    action: {
+                      label: "Open",
+                      onClick: () => handleSelectNote(result.id),
+                    },
+                  }
+                );
+              }, 500); // Small delay to show after the main success toast
+            }
+            return "Note created successfully";
+          },
+          error: "Failed to create note",
+        });
+
+        setIsSheetOpen(false);
+      } catch (err) {
+        toast.error("Failed to create note");
+      }
+    },
+    [
+      limitReached,
+      newTitle,
+      createNoteMutation,
+      handleSelectNote,
+      setShowCreateForm,
+      setNewTitle,
+      setError,
+      setIsSheetOpen,
+    ]
+  );
+
+  const handleEditNote = useCallback((note: Note) => {
     setEditingNote(note);
     setEditTitle(note.title);
     setShowEditForm(true);
-  };
+  }, []);
 
-  const handleUpdateNote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingNote) return;
-    const noteData = { title: editTitle, content: editingNote.content };
+  const handleUpdateNote = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!editingNote) return;
+      const noteData = { title: editTitle, content: editingNote.content };
 
-    // Close dialog and clear form immediately for optimistic UX
-    setShowEditForm(false);
-    setEditingNote(null);
-    setEditTitle("");
-    setError("");
+      // Close dialog and clear form immediately for optimistic UX
+      setShowEditForm(false);
+      setEditingNote(null);
+      setEditTitle("");
+      setError("");
 
-    try {
-      await toast.promise(
-        updateNoteMutation.mutateAsync({ id: editingNote.id, data: noteData }),
-        {
-          loading: "Updating note...",
-          success: "Note updated successfully",
-          error: "Failed to update note",
-        }
-      );
-      updateNoteInList(editingNote.id, {
-        title: editTitle,
-        updated_at: new Date().toISOString(),
-      });
-    } catch (err) {
-      //
-    }
-  };
+      try {
+        await toast.promise(
+          updateNoteMutation.mutateAsync({
+            id: editingNote.id,
+            data: noteData,
+          }),
+          {
+            loading: "Updating note...",
+            success: "Note updated successfully",
+            error: "Failed to update note",
+          }
+        );
+        updateNoteInList(editingNote.id, {
+          title: editTitle,
+          updated_at: new Date().toISOString(),
+        });
+      } catch (err) {
+        //
+      }
+    },
+    [
+      editingNote,
+      editTitle,
+      updateNoteMutation,
+      setShowEditForm,
+      setEditingNote,
+      setEditTitle,
+      setError,
+      updateNoteInList,
+    ]
+  );
 
-  const handleDeleteNote = async (id: string) => {
+  const handleDeleteNote = useCallback((id: string) => {
     setDeleteNoteId(id);
-  };
+  }, []);
 
-  const confirmDeleteNote = async () => {
+  const confirmDeleteNote = useCallback(async () => {
     if (!deleteNoteId) return;
     try {
       await toast.promise(deleteNoteMutation.mutateAsync(deleteNoteId), {
@@ -459,57 +444,71 @@ function NotesDashboardContent() {
       //
     }
     setDeleteNoteId(null);
-  };
+  }, [deleteNoteId, deleteNoteMutation, notes, searchParams, router]);
 
-  const handleInviteUser = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setInviteError(""); // Clear any previous error
-    try {
-      const result = await inviteUserMutation.mutateAsync({
-        email: inviteEmail,
-        role: inviteRole,
-        password: invitePassword || undefined,
-      });
+  const handleInviteUser = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      setInviteError(""); // Clear any previous error
+      try {
+        const result = await inviteUserMutation.mutateAsync({
+          email: inviteEmail,
+          role: inviteRole,
+          password: invitePassword || undefined,
+        });
 
-      toast.success(`User ${inviteEmail} invited successfully!`);
+        toast.success(`User ${inviteEmail} invited successfully!`);
 
-      // Copy password to clipboard if it was generated or provided
-      if (result.password) {
-        copyToClipboard(result.password);
-        toast.success("Password copied to clipboard!");
-      }
-
-      setShowInviteForm(false);
-      setInviteEmail("");
-      setInviteRole("member");
-      setInvitePassword("");
-      setShowPassword(false);
-      setInviteError("");
-    } catch (err: any) {
-      // Try to extract the error message from the API response
-      let errorMessage = "Failed to invite user";
-      if (err && typeof err.json === "function") {
-        try {
-          const errorData = await err.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          // If we can't parse the error response, use the default message
+        // Copy password to clipboard if it was generated or provided
+        if (result.password) {
+          copyToClipboard(result.password);
+          toast.success("Password copied to clipboard!");
         }
-      }
-      setInviteError(errorMessage);
-    }
-  };
 
-  const handleLogout = () => {
+        setShowInviteForm(false);
+        setInviteEmail("");
+        setInviteRole("member");
+        setInvitePassword("");
+        setShowPassword(false);
+        setInviteError("");
+      } catch (err: any) {
+        // Try to extract the error message from the API response
+        let errorMessage = "Failed to invite user";
+        if (err && typeof err.json === "function") {
+          try {
+            const errorData = await err.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch {
+            // If we can't parse the error response, use the default message
+          }
+        }
+        setInviteError(errorMessage);
+      }
+    },
+    [
+      inviteEmail,
+      inviteRole,
+      invitePassword,
+      inviteUserMutation,
+      setInviteError,
+      setShowInviteForm,
+      setInviteEmail,
+      setInviteRole,
+      setInvitePassword,
+      setShowPassword,
+    ]
+  );
+
+  const handleLogout = useCallback(() => {
     localStorage.removeItem("auth:token");
     // Clear all cached data to prevent showing previous user's data
     queryClient.clear();
     router.push("/auth/login");
-  };
+  }, [queryClient, router]);
 
   // Handler for the upgrade process.
   const upgradingRef = useRef(false);
-  const onUpgrade = async () => {
+  const onUpgrade = useCallback(async () => {
     if (upgradingRef.current) return;
     upgradingRef.current = true;
     try {
@@ -548,7 +547,14 @@ function NotesDashboardContent() {
       //
     }
     upgradingRef.current = false;
-  };
+  }, [
+    upgradeTenantMutation,
+    tenant.slug,
+    setUser,
+    setConfettiFading,
+    setShowConfetti,
+    confettiTimers,
+  ]);
 
   // Clean up confetti timers when component unmounts
   useEffect(() => {
@@ -913,7 +919,6 @@ function NotesDashboardContent() {
             ) : selectedId ? (
               <>
                 <NoteEditorContainer
-                  key={selectedId}
                   noteId={selectedId}
                   onNoteUpdate={updateNoteInList}
                   // Provide refs so the child can register dirty state and save
@@ -988,653 +993,5 @@ function NotesDashboardContent() {
         </section>
       </div>
     </React.Suspense>
-  );
-}
-
-// --- Reusable Sidebar Component ---
-// This component contains the entire sidebar UI, so it can be used in both
-// the permanent desktop sidebar and the mobile slide-out sheet.
-function SidebarContent({
-  notes,
-  notesLoading,
-  notesError,
-  tenant,
-  user,
-  tenantLoading,
-  limitReached,
-  selectedId,
-  onSelectNote,
-  onCreateNote,
-  onEditNote,
-  onDeleteNote,
-  onConfirmDelete,
-  onInviteUser,
-  onUpgrade,
-  onLogout,
-  deleteNoteId,
-  setDeleteNoteId,
-  deleteNotePending,
-}: any) {
-  // Show skeleton loading when either tenant or notes are loading
-  const isLoading = tenantLoading || notesLoading;
-
-  if (isLoading) {
-    return (
-      <>
-        <div className="min-w-0 p-3">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-4 w-20" />
-              <Skeleton className="h-3 w-16" />
-            </div>
-          </div>
-        </div>
-        <Separator className="my-4" />
-        <div className="space-y-2 px-2">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-8 w-full" />
-        </div>
-        <Separator className="my-4" />
-        <div className="flex-1 space-y-2 px-2">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-        </div>
-
-        <div className="border-t p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-8 w-full" />
-            </div>
-            <Skeleton className="h-8 w-16" />
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <div className="min-w-0 p-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="truncate text-pretty text-xl font-medium">
-                {tenant?.slug}
-              </span>
-              <Badge
-                variant="secondary"
-                className="px-1.5 py-0.5 text-xs font-medium"
-              >
-                {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
-              </Badge>
-            </div>
-            <p className="text-muted-foreground truncate text-xs">
-              {tenant?.plan === "FREE" && tenant?.limit !== null
-                ? `${tenant?.noteCount} / ${tenant?.limit} Notes`
-                : `${tenant?.noteCount || 0} Notes`}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {limitReached && user?.role === "admin" && (
-        <UpgradeBanner onUpgrade={onUpgrade} />
-      )}
-      <Separator className="mb-4 mt-1" />
-      <div className="flex flex-col gap-2 px-2">
-        <Button
-          size="sm"
-          onClick={onCreateNote}
-          disabled={limitReached}
-          variant="default"
-          className="w-full"
-        >
-          <Plus className="mr-1.5 size-4" />
-          New Note
-        </Button>
-        {user?.role === "admin" && (
-          <Button
-            size="sm"
-            onClick={onInviteUser}
-            variant="outline"
-            className="w-full"
-          >
-            <UserPlus className="mr-1.5 size-4" />
-            Invite User
-          </Button>
-        )}
-      </div>
-      <Separator className="my-4" />
-
-      <ScrollArea className="min-h-0 flex-1">
-        <nav className="space-y-1 px-2 pb-2">
-          {notesError && (
-            <p className="text-destructive px-2 py-1.5 text-xs">
-              Failed to load notes
-            </p>
-          )}
-          {(notes || []).map((note: Note) => (
-            <div
-              key={note.id}
-              role="button"
-              tabIndex={0}
-              className={cn(
-                "hover:bg-accent/70 group w-full cursor-pointer select-none rounded-md px-2 py-1.5 text-left text-sm transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2",
-                selectedId === note.id && "bg-accent"
-              )}
-              onClick={() => onSelectNote(note.id)}
-              onKeyDown={e => {
-                // Activate on Enter or Space for accessibility
-                if (
-                  e.key === "Enter" ||
-                  e.key === " " ||
-                  e.key === "Spacebar"
-                ) {
-                  e.preventDefault();
-                  onSelectNote(note.id);
-                }
-              }}
-              aria-current={selectedId === note.id ? "page" : undefined}
-            >
-              <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-                <span className="truncate">{note.title || "Untitled"}</span>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-muted-foreground hover:text-foreground opacity-0 transition-all focus:opacity-100 focus-visible:opacity-100 group-focus-within:opacity-100 group-hover:opacity-100 data-[state=open]:opacity-100"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={e => {
-                        e.stopPropagation();
-                        onEditNote(note);
-                      }}
-                    >
-                      <Edit className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={e => {
-                        e.stopPropagation();
-                        onDeleteNote(note.id);
-                      }}
-                      className="text-destructive focus:text-destructive"
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            </div>
-          ))}
-        </nav>
-      </ScrollArea>
-      {/* Sidebar footer - upgrade widget shown at the bottom of the sidebar */}
-      <div className="border-t p-3">
-        <UpgradeFooter
-          tenant={tenant}
-          onUpgrade={onUpgrade}
-          user={user}
-          onLogout={onLogout}
-        />
-      </div>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={!!deleteNoteId}
-        onOpenChange={() => setDeleteNoteId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Note</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete "
-              {notes?.find((n: Note) => n.id === deleteNoteId)?.title ||
-                "Untitled"}
-              "? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteNotePending}>
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              className="bg-destructive hover:bg-destructive/90"
-              onClick={onConfirmDelete}
-              disabled={deleteNotePending}
-            >
-              {deleteNotePending ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
-  );
-}
-
-// --- User Menu Component ---
-function UserMenu({ user, tenant, onLogout, onUpgrade }: any) {
-  const { theme, setTheme } = useTheme();
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="hover:bg-accent h-auto w-full justify-start p-2"
-        >
-          <div className="flex w-full items-center gap-2">
-            <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-lg">
-              <User className="h-4 w-4" />
-            </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              {user?.role === "admin" ? "Admin" : "Member"}
-              {" • "}
-              {tenant?.slug || "Tenant"}
-              <span className="truncate text-xs font-medium">
-                {tenant?.email || "User"}
-              </span>
-            </div>
-            <ChevronsUpDown className="ml-auto size-4" />
-          </div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="start">
-        <DropdownMenuLabel className="p-0 font-normal">
-          <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-            <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-lg">
-              <User className="h-4 w-4" />
-            </div>
-            <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">
-                {tenant?.email || "User"}
-              </span>
-              <span className="truncate text-xs">
-                {user?.role === "admin" ? "Admin" : "Member"} •{" "}
-                {user?.tenantPlan === "pro" ? "Pro" : "Free"}
-              </span>
-            </div>
-          </div>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {user?.tenantPlan !== "pro" && (
-          <>
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={onUpgrade}>
-                <Sparkles className="mr-2 h-4 w-4" />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-          </>
-        )}
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          >
-            {theme === "light" ? (
-              <Moon className="mr-2 h-4 w-4" />
-            ) : (
-              <Sun className="mr-2 h-4 w-4" />
-            )}
-            Switch to {theme === "light" ? "dark" : "light"} theme
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onLogout}>
-          <LogOut className="mr-2 h-4 w-4" />
-          Log out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-// --- Upgrade Footer Component ---
-function UpgradeFooter({ tenant, onUpgrade, user, onLogout }: any) {
-  return (
-    <div className="flex items-center gap-3">
-      <div className="flex-1">
-        <UserMenu
-          user={user}
-          tenant={tenant}
-          onLogout={onLogout}
-          onUpgrade={onUpgrade}
-        />
-      </div>
-    </div>
-  );
-}
-
-// --- Topbar Component ---
-// The header of the main content area, containing the mobile menu and upgrade button.
-function Topbar({
-  limitReached,
-  canUpgrade,
-  onUpgrade,
-  tenant,
-  user,
-  tenantLoading,
-  children,
-  onOpenSheet,
-  isSheetOpen,
-  onLogout,
-}: any) {
-  return (
-    <header className="bg-card flex w-full items-center justify-between px-3 py-2 md:hidden">
-      {/* Mobile Menu Button */}
-      <Sheet open={isSheetOpen} onOpenChange={onOpenSheet}>
-        <SheetTrigger asChild>
-          <Button size="icon" variant="outline">
-            <Menu className="size-4" />
-          </Button>
-        </SheetTrigger>
-        {children} {/* The SheetContent is passed as a child */}
-      </Sheet>
-
-      {/* Tenant info */}
-      <div className="flex items-center gap-2">
-        {tenantLoading ? (
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-8 w-24" />
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span className="truncate text-pretty text-sm font-medium">
-              {tenant?.slug}
-            </span>
-            <Badge
-              variant="secondary"
-              className="px-1.5 py-0.5 text-xs font-medium"
-            >
-              {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
-            </Badge>
-          </div>
-        )}
-      </div>
-
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        {!tenantLoading && canUpgrade && (
-          <Button size="sm" onClick={onUpgrade} variant="secondary">
-            <Sparkles className="mr-1.5 size-4" />
-            Upgrade
-          </Button>
-        )}
-      </div>
-    </header>
-  );
-}
-
-// --- Upgrade Banner Component ---
-// A small banner shown in the sidebar when the user hits their note limit.
-function UpgradeBanner({ onUpgrade }: { onUpgrade: () => void }) {
-  return (
-    <div className="bg-muted mx-3 mb-3 rounded-md border p-3">
-      <p className="text-xs">
-        You’ve reached the Free plan limit. Upgrade to Pro for unlimited notes.
-      </p>
-      <div className="mt-2">
-        <Button size="sm" onClick={onUpgrade} className="w-full">
-          <Sparkles className="mr-1.5 size-4" />
-          Upgrade to Pro
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// --- Note Editor Component ---
-// This component fetches and displays the content of the selected note.
-function NoteEditorContainer({
-  noteId,
-  onNoteUpdate,
-  registerDirtyRef,
-  registerSaveFn,
-}: {
-  noteId: string;
-  onNoteUpdate: (noteId: string, updates: Partial<Note>) => void;
-  registerDirtyRef?: (isDirty: boolean) => void;
-  registerSaveFn?: (fn: () => Promise<void>) => void;
-}) {
-  const { data: noteData, isLoading, error } = useNote(noteId);
-  const updateNoteMutation = useUpdateNote();
-
-  const note = noteData;
-  const [currentTitle, setCurrentTitle] = useState(note?.title || "");
-  const [currentContent, setCurrentContent] = useState<any>(
-    note?.content || null
-  );
-  const [dirty, setDirty] = useState(false);
-  const [saving, setSaving] = useState(false);
-  // Editor is considered ready once programmatic setContent + clearHistory is done
-  const [editorReady, setEditorReady] = useState(false);
-
-  const handleEditorUpdate = useCallback(() => {
-    setDirty(true);
-  }, []);
-
-  const editor = useEditor({
-    // Do not set a default content here. The editor will be populated
-    // from the fetched note in an effect below. This avoids creating an
-    // initial undo entry that contains placeholder text.
-    immediatelyRender: false,
-    extensions: [
-      StarterKit.configure({
-        heading: false,
-      }),
-      Heading.configure({ levels: [1, 2, 3] }),
-      TaskList,
-      TaskItem,
-      Link.configure({
-        autolink: true,
-        openOnClick: true,
-        HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
-      }),
-      Placeholder.configure({
-        placeholder: "Start typing...",
-        emptyEditorClass: "is-editor-empty text-muted-foreground",
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      Highlight.configure({ multicolor: true }),
-      Underline,
-      Subscript,
-      Superscript,
-    ],
-    editorProps: {
-      attributes: {
-        class: "tiptap max-w-none py-6 px-4 md:px-6 text-foreground",
-      },
-    },
-    onUpdate: handleEditorUpdate,
-  });
-
-  // Update local state when note data changes
-  useEffect(() => {
-    if (note) {
-      setCurrentTitle(note.title);
-      setCurrentContent(note.content);
-      setDirty(false);
-      setEditorReady(false);
-      if (editor) {
-        // Programmatically set the editor content from the loaded note.
-        // Pass `false` so it does not trigger update handlers as a user
-        // edit. Immediately clear the history so undo/redo won't step
-        // back to any previous programmatic content (like a placeholder
-        // or previously-loaded note), which fixes the undesired undo
-        // behavior and flicker when switching notes.
-        editor.commands.setContent(note.content, false);
-        // Try to clear the editor history so undo doesn't revert to the
-        // programmatic content. Use storage.history.clear() as clearHistory
-        // command is not available.
-        if (editor.storage && editor.storage.history) {
-          editor.storage.history.clear();
-        }
-        // Now mark editor ready so the parent can render it without flicker
-        setEditorReady(true);
-      }
-    }
-  }, [note, editor]);
-
-  // Save to API
-  const saveToAPI = useCallback(
-    async (data: { title?: string; content?: any }) => {
-      // Validate title
-      const titleToSave = data.title?.trim();
-      if (!titleToSave) {
-        toast.error("Please enter a title for your note");
-        return;
-      }
-
-      const contentToSave = data.content || editor?.getJSON();
-      setSaving(true);
-      try {
-        await toast.promise(
-          updateNoteMutation.mutateAsync({
-            id: noteId,
-            data: { ...data, title: titleToSave, content: contentToSave },
-          }),
-          {
-            loading: "Saving note...",
-            success: "Note saved!",
-            error: "Failed to save note.",
-          }
-        );
-        const updates: Partial<Note> = {
-          updated_at: new Date().toISOString(),
-        };
-        if (titleToSave !== undefined) updates.title = titleToSave;
-        onNoteUpdate(noteId, updates);
-        setDirty(false);
-      } catch (err) {
-        //
-      } finally {
-        setSaving(false);
-      }
-    },
-    [noteId, onNoteUpdate, updateNoteMutation, editor]
-  );
-
-  // Register dirty state with parent
-  useEffect(() => {
-    if (typeof registerDirtyRef === "function") registerDirtyRef(dirty);
-  }, [dirty, registerDirtyRef]);
-
-  // Register save function with parent
-  useEffect(() => {
-    if (typeof registerSaveFn === "function") {
-      registerSaveFn(async () => {
-        await saveToAPI({ title: currentTitle });
-      });
-    }
-  }, [registerSaveFn, saveToAPI, currentTitle]);
-
-  // Handler for title changes. Updates local state and marks as dirty.
-  const onTitleChange = (newTitle: string) => {
-    setCurrentTitle(newTitle);
-    setDirty(true);
-  };
-
-  // Manual save handler
-  const handleManualSave = async () => {
-    await saveToAPI({ title: currentTitle });
-  };
-
-  // Prevent closing window with unsaved changes
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (dirty) {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-
-    if (dirty) {
-      window.addEventListener("beforeunload", handleBeforeUnload);
-    } else {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    }
-
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [dirty]);
-
-  // Keyboard shortcut for save (Ctrl+S / Cmd+S)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-        e.preventDefault();
-        if (dirty && !saving) {
-          handleManualSave();
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [dirty, saving, handleManualSave]);
-
-  if (isLoading || !editorReady) {
-    return (
-      <div className="flex h-full flex-col">
-        <div className="flex items-center gap-2 px-4 pb-2 pt-4">
-          <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-8 w-16" />
-        </div>
-        <div className="flex-1 space-y-4 px-4">
-          <Skeleton className="h-8 w-3/4" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-5/6" />
-          <Skeleton className="h-4 w-4/5" />
-          <Skeleton className="h-6 w-2/3" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-        </div>
-      </div>
-    );
-  }
-  if (error)
-    return <p className="text-destructive p-4 text-sm">Failed to load note.</p>;
-  if (!note) return null;
-
-  return (
-    <div className="flex h-full flex-col">
-      <Toolbar
-        editor={editor}
-        onSave={handleManualSave}
-        disabled={!dirty}
-        saving={saving}
-      />
-      <ScrollArea
-        type="always"
-        className="h-[calc(100vh-120px)] md:h-[calc(100vh-60px)]"
-      >
-        <div className="mx-auto mt-6 w-full max-w-4xl px-4 md:px-6">
-          <input
-            className="text-foreground w-full resize-none border-none bg-transparent text-4xl font-bold focus:outline-none"
-            value={currentTitle}
-            onChange={e => onTitleChange(e.target.value)}
-            placeholder="Untitled"
-          />
-        </div>
-        <NoteEditor editor={editor} />
-      </ScrollArea>
-    </div>
   );
 }

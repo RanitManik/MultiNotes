@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
@@ -168,6 +168,7 @@ function useWindowSize() {
 // --- Main Dashboard Component ---
 export default function NotesDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   // User state
   const [user, setUser] = useState<UserType | null>(null);
@@ -266,12 +267,32 @@ export default function NotesDashboard() {
     }
   }, [router]);
 
-  // Automatically select the first note if none is selected and there are notes
+  // Automatically select note based on search params or first note
   useEffect(() => {
-    if (!selectedId && notes.length > 0) {
-      setSelectedId(notes[0]!.id);
+    if (notes.length === 0) return;
+
+    const noteParam = searchParams.get("note");
+
+    if (noteParam) {
+      // Check if the note from search params exists
+      const noteExists = notes.some(note => note.id === noteParam);
+      if (noteExists) {
+        setSelectedId(noteParam);
+        return;
+      }
     }
-  }, [notes, selectedId]);
+
+    // If no valid search param or note doesn't exist, select first note and update URL
+    if (!selectedId) {
+      const firstNoteId = notes[0]!.id;
+      setSelectedId(firstNoteId);
+
+      // Update URL with the first note ID
+      const newSearchParams = new URLSearchParams(searchParams);
+      newSearchParams.set("note", firstNoteId);
+      router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+    }
+  }, [notes, router]); // Only run when notes load or router changes
 
   // Derived state to determine if the user has hit their note limit.
   const limitReached = useMemo(() => {
@@ -391,6 +412,11 @@ export default function NotesDashboard() {
   const handleSelectNote = (id: string) => {
     setSelectedId(id);
     setIsSheetOpen(false); // Close mobile sheet on selection.
+
+    // Update URL with the selected note
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("note", id);
+    router.replace(`?${newSearchParams.toString()}`, { scroll: false });
   };
 
   const handleInviteUser = async (e: React.FormEvent) => {

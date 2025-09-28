@@ -445,6 +445,15 @@ function NotesDashboardContent() {
       });
       const remaining = (notes || []).filter((n: any) => n.id !== deleteNoteId);
       setSelectedId(remaining[0]?.id || null);
+
+      // Update URL with the new selected note or remove param if none
+      const newSearchParams = new URLSearchParams(searchParams);
+      if (remaining[0]?.id) {
+        newSearchParams.set("note", remaining[0].id);
+      } else {
+        newSearchParams.delete("note");
+      }
+      router.replace(`?${newSearchParams.toString()}`, { scroll: false });
     } catch (err) {
       //
     }
@@ -604,7 +613,7 @@ function NotesDashboardContent() {
               <Button type="submit" disabled={createNoteMutation.isPending}>
                 {createNoteMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Creating...
                   </>
                 ) : (
@@ -646,7 +655,7 @@ function NotesDashboardContent() {
               <Button type="submit" disabled={updateNoteMutation.isPending}>
                 {updateNoteMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin" />
                     Updating...
                   </>
                 ) : (
@@ -1183,7 +1192,7 @@ function SidebarContent({
             >
               {deleteNotePending ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                   Deleting...
                 </>
               ) : (

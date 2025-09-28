@@ -1326,7 +1326,7 @@ function NoteEditorContainer({
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
-      Highlight,
+      Highlight.configure({ multicolor: true }),
       Underline,
       Subscript,
       Superscript,

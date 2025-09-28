@@ -397,15 +397,17 @@ export function Toolbar({
                 <Label>Highlight Color</Label>
                 <div className="grid grid-cols-6 gap-2">
                   {[
-                    "#fef3c7", // light yellow
-                    "#fde68a", // yellow
-                    "#fcd34d", // amber
-                    "#f87171", // red
-                    "#fb7185", // pink
-                    "#a78bfa", // purple
-                    "#60a5fa", // blue
-                    "#34d399", // emerald
-                    "#6b7280", // gray
+                    "#78350f", // dark amber-brown (was light yellow)
+                    "#92400e", // dark amber (was yellow)
+                    "#b45309", // dark amber-orange (was amber)
+                    "#b91c1c", // dark red
+                    "#9d174d", // dark pink/magenta
+                    "#5b21b6", // dark purple
+                    "#1d4ed8", // dark blue
+                    "#065f46", // dark emerald
+                    "#374151", // dark gray
+                    "#064e3b", // new deep green
+                    "#312e81", // new deep indigo
                     "#000000", // black
                   ].map(color => (
                     <button

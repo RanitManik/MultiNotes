@@ -132,7 +132,6 @@ describe("Tenant Upgrade API", () => {
         const json = await res.json();
         expect(json.message).toBe("Upgraded to Pro");
         expect(json.tenant.plan).toBe("pro");
-        expect(json.token).toBe("new-jwt-token");
       },
     });
   });

@@ -91,6 +91,10 @@ import {
   Moon,
   Sun,
   MoreHorizontal,
+  Copy,
+  Eye,
+  EyeOff,
+  Shuffle,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -120,9 +124,21 @@ import {
   type Tenant,
   type User as UserType,
 } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
 
-// --- Type Definitions ---
-// Types are imported from @/lib/api
+// Utility functions
+function generateRandomPassword(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+
+function copyToClipboard(text: string): void {
+  navigator.clipboard.writeText(text);
+}
 
 // --- Utility Hook ---
 // A simple React hook to get the current window dimensions for the confetti effect.
@@ -160,6 +176,9 @@ export default function NotesDashboard() {
   const upgradeTenantMutation = useUpgradeTenant();
   const inviteUserMutation = useInviteUser();
 
+  // Get query client for manual invalidation
+  const queryClient = useQueryClient();
+
   // Derived data
   const notes = notesData || [];
   const tenant = tenantData || {
@@ -182,6 +201,8 @@ export default function NotesDashboard() {
   const [newTitle, setNewTitle] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
+  const [invitePassword, setInvitePassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [error, setError] = useState("");
@@ -364,22 +385,27 @@ export default function NotesDashboard() {
   const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await toast.promise(
-        inviteUserMutation.mutateAsync({
-          email: inviteEmail,
-          role: inviteRole,
-        }),
-        {
-          loading: "Inviting user...",
-          success: `User ${inviteEmail} invited successfully!`,
-          error: "Failed to invite user",
-        }
-      );
+      const result = await inviteUserMutation.mutateAsync({
+        email: inviteEmail,
+        role: inviteRole,
+        password: invitePassword || undefined,
+      });
+      
+      toast.success(`User ${inviteEmail} invited successfully!`);
+      
+      // Copy password to clipboard if it was generated or provided
+      if (result.password) {
+        copyToClipboard(result.password);
+        toast.success("Password copied to clipboard!");
+      }
+      
       setShowInviteForm(false);
       setInviteEmail("");
       setInviteRole("member");
+      setInvitePassword("");
+      setShowPassword(false);
     } catch (err: any) {
-      //
+      toast.error("Failed to invite user");
     }
   };
 
@@ -394,27 +420,18 @@ export default function NotesDashboard() {
     if (upgradingRef.current) return;
     upgradingRef.current = true;
     try {
-      const result = (await toast.promise(
+      await toast.promise(
         upgradeTenantMutation.mutateAsync(tenant.slug),
         {
           loading: "Upgrading to Pro...",
           success: "Upgraded to Pro successfully!",
           error: "Upgrade failed to process.",
         }
-      )) as unknown as { token: string };
-      // Update token with new one containing updated tenant plan
-      localStorage.setItem("auth:token", result.token);
-
-      // Decode the new token to update user state
-      const parts = result.token.split(".");
-      if (parts.length === 3 && parts[1]) {
-        const payload = JSON.parse(atob(parts[1]));
-        setUser({
-          role: payload.role,
-          tenantSlug: payload.tenantSlug,
-          tenantPlan: payload.tenantPlan,
-        });
-      }
+      );
+      // Update user state to reflect pro plan
+      setUser(prevUser => prevUser ? { ...prevUser, tenantPlan: "pro" } : null);
+      // Invalidate tenant query to get updated data
+      queryClient.invalidateQueries({ queryKey: ["tenant"] });
 
       // 🎊 Show confetti and fade it out smoothly before hiding.
       const DURATION = 6000; // total confetti duration
@@ -606,11 +623,70 @@ export default function NotesDashboard() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="invitePassword">Password (Optional)</Label>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Input
+                      id="invitePassword"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Leave empty to generate random password"
+                      value={invitePassword}
+                      onChange={e => setInvitePassword(e.target.value)}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setInvitePassword(generateRandomPassword())}
+                    title="Generate random password"
+                  >
+                    <Shuffle className="h-4 w-4" />
+                  </Button>
+                  {invitePassword && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        copyToClipboard(invitePassword);
+                        toast.success("Password copied to clipboard!");
+                      }}
+                      title="Copy password"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  If no password is provided, a secure random password will be generated and copied to your clipboard.
+                </p>
+              </div>
               <div className="flex justify-end space-x-2">
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setShowInviteForm(false)}
+                  onClick={() => {
+                    setShowInviteForm(false);
+                    setInviteEmail("");
+                    setInviteRole("member");
+                    setInvitePassword("");
+                    setShowPassword(false);
+                  }}
                   disabled={inviteUserMutation.isPending}
                 >
                   Cancel

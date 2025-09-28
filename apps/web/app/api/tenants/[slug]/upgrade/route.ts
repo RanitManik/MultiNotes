@@ -66,7 +66,6 @@ export async function POST(
     return NextResponse.json({
       message: "Upgraded to Pro",
       tenant: updatedTenant,
-      token: newToken,
     });
   } catch (error) {
     console.error("Upgrade error:", error);

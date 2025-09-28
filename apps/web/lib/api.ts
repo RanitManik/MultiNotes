@@ -103,19 +103,19 @@ export const api = {
     return response.json();
   },
 
-  upgradeTenant: async (slug: string): Promise<{ token: string }> => {
+  upgradeTenant: async (slug: string): Promise<void> => {
     const response = await fetch(`/api/tenants/${slug}/upgrade`, {
       method: "POST",
       headers: getAuthHeaders(),
     });
     if (!response.ok) handleApiError(response);
-    return response.json();
   },
 
   // Auth
   inviteUser: async (data: {
     email: string;
     role: "admin" | "member";
+    password?: string;
   }): Promise<any> => {
     const response = await fetch(`/api/auth/invite`, {
       method: "POST",
@@ -193,9 +193,7 @@ export const useUpgradeTenant = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.upgradeTenant,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["tenant"] });
-    },
+    // Remove automatic invalidation - we'll handle it manually after token update
   });
 };
 

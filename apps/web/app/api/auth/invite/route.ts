@@ -3,6 +3,15 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { requireAuth } from "@/lib/auth";
 
+function generateRandomPassword(): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let password = "";
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const user = requireAuth(request);
@@ -17,7 +26,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, role } = await request.json();
+    const { email, role, password } = await request.json();
 
     if (!email || !role) {
       return NextResponse.json(
@@ -45,9 +54,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user with default password
-    const defaultPassword = "password";
-    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    // Use provided password or generate a random one
+    const userPassword = password || generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(userPassword, 10);
 
     const newUser = await prisma.user.create({
       data: {
@@ -72,7 +81,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: "User invited successfully",
       user: newUser,
-      defaultPassword,
+      password: userPassword,
     });
   } catch (error) {
     console.error("Invite user error:", error);

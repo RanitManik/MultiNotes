@@ -157,7 +157,46 @@ describe("Invite API", () => {
         const json = await res.json();
         expect(json.message).toBe("User invited successfully");
         expect(json.user.email).toBe("test@example.com");
-        expect(json.defaultPassword).toBe("password");
+        expect(json.password).toBeDefined();
+        expect(typeof json.password).toBe("string");
+        expect(json.password.length).toBeGreaterThan(0);
+      },
+    });
+  });
+
+  it("should create user with custom password", async () => {
+    (requireAuth as jest.Mock).mockReturnValue({
+      id: 1,
+      role: "admin",
+      tenantId: 1,
+    });
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+    (prisma.user.create as jest.Mock).mockResolvedValue({
+      id: 2,
+      email: "test@example.com",
+      role: "member",
+      tenant: {
+        slug: "test-tenant",
+        name: "Test Tenant",
+      },
+    });
+
+    await testApiHandler({
+      appHandler,
+      test: async ({ fetch }) => {
+        const res = await fetch({
+          method: "POST",
+          body: JSON.stringify({ 
+            email: "test@example.com", 
+            role: "member",
+            password: "custompassword123"
+          }),
+        });
+        expect(res.status).toBe(200);
+        const json = await res.json();
+        expect(json.message).toBe("User invited successfully");
+        expect(json.user.email).toBe("test@example.com");
+        expect(json.password).toBe("custompassword123");
       },
     });
   });

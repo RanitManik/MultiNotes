@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { Button } from "@workspace/ui/components/button";
-import { Separator } from "@workspace/ui/components/separator";
 import {
   Tooltip,
   TooltipTrigger,
@@ -80,8 +79,8 @@ export function Toolbar({
 
   return (
     <div className="flex w-full items-center justify-between border-b px-3 py-2">
-      <div className="mx-auto">
-        <div className="flex items-center justify-center gap-1.5">
+      <div className="sm:mx-auto">
+        <div className="flex items-center justify-center gap-1 md:justify-start md:gap-1.5">
           {/* Essential buttons always visible */}
           <Tooltip>
             <TooltipTrigger asChild>
@@ -287,7 +286,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive("bold"))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive("bold"))}`}
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 aria-label="Bold"
               >
@@ -305,7 +304,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive("italic"))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive("italic"))}`}
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 aria-label="Italic"
               >
@@ -323,7 +322,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive("strike"))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive("strike"))}`}
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 aria-label="Strikethrough"
               >
@@ -341,7 +340,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive("code"))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive("code"))}`}
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 aria-label="Inline Code"
               >
@@ -359,7 +358,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive("underline"))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive("underline"))}`}
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
                 aria-label="Underline"
               >
@@ -382,7 +381,7 @@ export function Toolbar({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={itemCls(editor.isActive("highlight"))}
+                    className={`hidden md:inline-flex ${itemCls(editor.isActive("highlight"))}`}
                     aria-label="Highlight"
                   >
                     <Highlighter
@@ -444,7 +443,7 @@ export function Toolbar({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={itemCls(editor.isActive("link"))}
+                    className={`hidden md:inline-flex ${itemCls(editor.isActive("link"))}`}
                     aria-label="Link"
                   >
                     <Link
@@ -493,7 +492,7 @@ export function Toolbar({
             </PopoverContent>
           </Popover>
 
-          <div className="bg-border mx-1 h-5 w-px" />
+          <div className="bg-border mx-1 hidden h-5 w-px md:block" />
 
           {/* Superscript/Subscript */}
           <Tooltip>
@@ -501,7 +500,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive("superscript"))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive("superscript"))}`}
                 onClick={() => {
                   if (editor.can().toggleSuperscript?.()) {
                     editor.chain().focus().toggleSuperscript().run();
@@ -521,7 +520,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive("subscript"))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive("subscript"))}`}
                 onClick={() => {
                   if (editor.can().toggleSubscript?.()) {
                     editor.chain().focus().toggleSubscript().run();
@@ -537,7 +536,7 @@ export function Toolbar({
             <TooltipContent>Subscript</TooltipContent>
           </Tooltip>
 
-          <div className="bg-border mx-0.5 h-5 w-px" />
+          <div className="bg-border mx-0.5 hidden h-5 w-px md:block" />
 
           {/* Alignment buttons */}
           <Tooltip>
@@ -545,7 +544,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive({ textAlign: "left" }))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "left" }))}`}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("left").run()
                 }
@@ -563,7 +562,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive({ textAlign: "center" }))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "center" }))}`}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("center").run()
                 }
@@ -581,7 +580,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive({ textAlign: "right" }))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "right" }))}`}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("right").run()
                 }
@@ -599,7 +598,7 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className={itemCls(editor.isActive({ textAlign: "justify" }))}
+                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "justify" }))}`}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("justify").run()
                 }
@@ -619,13 +618,25 @@ export function Toolbar({
               <Button
                 size="sm"
                 variant="ghost"
-                className="ml-2 md:hidden"
+                className="md:hidden"
                 aria-label="More formatting options"
               >
                 <MoreHorizontal className="size-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem
+                onClick={() => editor.chain().focus().toggleBold().run()}
+              >
+                <Bold className="mr-2 size-4" />
+                Bold
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => editor.chain().focus().toggleItalic().run()}
+              >
+                <Italic className="mr-2 size-4" />
+                Italic
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => editor.chain().focus().toggleStrike().run()}
               >
@@ -639,51 +650,36 @@ export function Toolbar({
                 Underline
               </DropdownMenuItem>
               <DropdownMenuItem
+                onClick={() => editor.chain().focus().toggleCode().run()}
+              >
+                <Code className="mr-2 size-4" />
+                Inline Code
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (editor.can().toggleSuperscript?.()) {
+                    editor.chain().focus().toggleSuperscript().run();
+                  }
+                }}
+              >
+                <Superscript className="mr-2 size-4" />
+                Superscript
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  if (editor.can().toggleSubscript?.()) {
+                    editor.chain().focus().toggleSubscript().run();
+                  }
+                }}
+              >
+                <Subscript className="mr-2 size-4" />
+                Subscript
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={() => editor.chain().focus().toggleHighlight().run()}
               >
                 <Highlighter className="mr-2 size-4" />
                 Highlight
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  editor.chain().focus().toggleHeading({ level: 1 }).run()
-                }
-              >
-                H1
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  editor.chain().focus().toggleHeading({ level: 2 }).run()
-                }
-              >
-                H2
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  editor.chain().focus().toggleHeading({ level: 3 }).run()
-                }
-              >
-                H3
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-              >
-                <List className="mr-2 size-4" />
-                Bullet List
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-              >
-                <ListOrdered className="mr-2 size-4" />
-                Numbered List
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleTaskList().run()}
-              >
-                <ListChecks className="mr-2 size-4" />
-                Task List
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -720,24 +716,6 @@ export function Toolbar({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleBlockquote().run()}
-              >
-                <Quote className="mr-2 size-4" />
-                Quote
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleCode().run()}
-              >
-                <Code className="mr-2 size-4" />
-                Inline Code
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-              >
-                <Code2 className="mr-2 size-4" />
-                Code Block
-              </DropdownMenuItem>
-              <DropdownMenuItem
                 onClick={() => {
                   const attrs = editor.getAttributes("link");
                   setLinkUrl(attrs.href || "");
@@ -757,8 +735,10 @@ export function Toolbar({
         disabled={disabled || saving}
         variant="default"
       >
-        <Save className="mr-1.5 size-4" />
-        {saving ? "Saving..." : "Save"}
+        <Save className="size-4 md:mr-1.5" />
+        <span className="hidden md:inline">
+          {saving ? "Saving..." : "Save"}
+        </span>
       </Button>
     </div>
   );

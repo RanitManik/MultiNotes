@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { EditorContent, useEditor } from "@tiptap/react";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -64,6 +64,10 @@ export function Toolbar({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isHighlightPopoverOpen, setIsHighlightPopoverOpen] = useState(false);
 
+  // --- Start of responsiveness logic ---
+  const toolbarRef = useRef<HTMLDivElement>(null);
+  const [visibleItemsCount, setVisibleItemsCount] = useState(20); // Start with a high number
+
   useEffect(() => {
     if (isPopoverOpen) {
       const attrs = editor.getAttributes("link");
@@ -71,18 +75,42 @@ export function Toolbar({
     }
   }, [isPopoverOpen, editor]);
 
+  // This effect observes the toolbar width and calculates how many items can fit
+  useEffect(() => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+
+    const observer = new ResizeObserver(entries => {
+      const width = entries[0]?.contentRect.width;
+      if (width) {
+        // Estimate average width per tool item. Adjust this value if needed.
+        const avgItemWidth = 42;
+        const count = Math.floor(width / avgItemWidth);
+        setVisibleItemsCount(Math.max(0, count)); // Ensure count is not negative
+      }
+    });
+
+    observer.observe(toolbar);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+  // --- End of responsiveness logic ---
+
   if (!editor) return null;
   const itemCls = (active: boolean) =>
     // Use tokens, avoid direct colors
     "h-8 px-2 text-xs border rounded-md " +
     (active ? "bg-accent" : "bg-card hover:bg-accent/60");
 
-  return (
-    <div className="flex w-full items-center justify-between border-b px-3 py-2">
-      <div className="sm:mx-auto">
-        <div className="flex items-center justify-center gap-1 md:justify-start md:gap-1.5">
-          {/* Essential buttons always visible */}
-          <Tooltip>
+  // We define all dynamic tool items in an array of objects for easier slicing and custom dropdown rendering
+  const allTools = useMemo(
+    () => [
+      {
+        id: "undo",
+        jsx: (
+          <Tooltip key="undo">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
@@ -97,7 +125,17 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Undo</TooltipContent>
           </Tooltip>
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem onClick={() => editor.chain().focus().undo().run()}>
+            <Undo className="mr-2 size-4" /> Undo
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "redo",
+        jsx: (
+          <Tooltip key="redo">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
@@ -112,11 +150,22 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Redo</TooltipContent>
           </Tooltip>
-
-          <div className="bg-border mx-1 h-5 w-px" />
-
-          {/* Headings dropdown */}
-          <DropdownMenu>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem onClick={() => editor.chain().focus().redo().run()}>
+            <Redo className="mr-2 size-4" /> Redo
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "divider-1",
+        jsx: <div key="divider-1" className="bg-border mx-1 h-5 w-px" />,
+        dropdownJsx: <DropdownMenuSeparator key="d-sep-1" />,
+      },
+      {
+        id: "headings",
+        jsx: (
+          <DropdownMenu key="headings">
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
@@ -180,9 +229,37 @@ export function Toolbar({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* List Dropdown */}
-          <DropdownMenu>
+        ),
+        dropdownJsx: (
+          <>
+            <DropdownMenuItem
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 1 }).run()
+              }
+            >
+              Heading 1
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 2 }).run()
+              }
+            >
+              Heading 2
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() =>
+                editor.chain().focus().toggleHeading({ level: 3 }).run()
+              }
+            >
+              Heading 3
+            </DropdownMenuItem>
+          </>
+        ),
+      },
+      {
+        id: "lists",
+        jsx: (
+          <DropdownMenu key="lists">
             <Tooltip>
               <TooltipTrigger asChild>
                 <DropdownMenuTrigger asChild>
@@ -241,9 +318,34 @@ export function Toolbar({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-
-          {/* Blockquote */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <>
+            <DropdownMenuItem
+              onClick={() => editor.chain().focus().toggleBulletList().run()}
+            >
+              <List className="mr-2 size-4" />
+              Bullet List
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            >
+              <ListOrdered className="mr-2 size-4" />
+              Numbered List
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => editor.chain().focus().toggleTaskList().run()}
+            >
+              <ListChecks className="mr-2 size-4" />
+              Task List
+            </DropdownMenuItem>
+          </>
+        ),
+      },
+      {
+        id: "blockquote",
+        jsx: (
+          <Tooltip key="blockquote">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
@@ -259,9 +361,20 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Quote</TooltipContent>
           </Tooltip>
-
-          {/* Code Block */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          >
+            <Quote className="mr-2 size-4" />
+            Quote
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "codeblock",
+        jsx: (
+          <Tooltip key="codeblock">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
@@ -277,16 +390,30 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Code Block</TooltipContent>
           </Tooltip>
-
-          <div className="bg-border mx-1 h-5 w-px" />
-
-          {/* Bold */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+          >
+            <Code2 className="mr-2 size-4" />
+            Code Block
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "divider-2",
+        jsx: <div key="divider-2" className="bg-border mx-1 h-5 w-px" />,
+        dropdownJsx: <DropdownMenuSeparator key="d-sep-2" />,
+      },
+      {
+        id: "bold",
+        jsx: (
+          <Tooltip key="bold">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive("bold"))}`}
+                className={itemCls(editor.isActive("bold"))}
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 aria-label="Bold"
               >
@@ -297,14 +424,25 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Bold</TooltipContent>
           </Tooltip>
-
-          {/* Italic */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleBold().run()}
+          >
+            <Bold className="mr-2 size-4" />
+            Bold
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "italic",
+        jsx: (
+          <Tooltip key="italic">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive("italic"))}`}
+                className={itemCls(editor.isActive("italic"))}
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 aria-label="Italic"
               >
@@ -315,14 +453,25 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Italic</TooltipContent>
           </Tooltip>
-
-          {/* Strikethrough */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+          >
+            <Italic className="mr-2 size-4" />
+            Italic
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "strike",
+        jsx: (
+          <Tooltip key="strike">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive("strike"))}`}
+                className={itemCls(editor.isActive("strike"))}
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 aria-label="Strikethrough"
               >
@@ -333,14 +482,25 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Strikethrough</TooltipContent>
           </Tooltip>
-
-          {/* Inline Code */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+          >
+            <Strikethrough className="mr-2 size-4" />
+            Strikethrough
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "code",
+        jsx: (
+          <Tooltip key="code">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive("code"))}`}
+                className={itemCls(editor.isActive("code"))}
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 aria-label="Inline Code"
               >
@@ -351,14 +511,25 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Inline Code</TooltipContent>
           </Tooltip>
-
-          {/* Underline */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleCode().run()}
+          >
+            <Code className="mr-2 size-4" />
+            Inline Code
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "underline",
+        jsx: (
+          <Tooltip key="underline">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive("underline"))}`}
+                className={itemCls(editor.isActive("underline"))}
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
                 aria-label="Underline"
               >
@@ -369,9 +540,21 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Underline</TooltipContent>
           </Tooltip>
-
-          {/* Highlight with color picker */}
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+          >
+            <Underline className="mr-2 size-4" />
+            Underline
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "highlight",
+        jsx: (
           <Popover
+            key="highlight"
             open={isHighlightPopoverOpen}
             onOpenChange={setIsHighlightPopoverOpen}
           >
@@ -381,7 +564,7 @@ export function Toolbar({
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={`hidden md:inline-flex ${itemCls(editor.isActive("highlight"))}`}
+                    className={itemCls(editor.isActive("highlight"))}
                     aria-label="Highlight"
                   >
                     <Highlighter
@@ -397,18 +580,18 @@ export function Toolbar({
                 <Label>Highlight Color</Label>
                 <div className="grid grid-cols-6 gap-2">
                   {[
-                    "#78350f", // dark amber-brown (was light yellow)
-                    "#92400e", // dark amber (was yellow)
-                    "#b45309", // dark amber-orange (was amber)
-                    "#b91c1c", // dark red
-                    "#9d174d", // dark pink/magenta
-                    "#5b21b6", // dark purple
-                    "#1d4ed8", // dark blue
-                    "#065f46", // dark emerald
-                    "#374151", // dark gray
-                    "#064e3b", // new deep green
-                    "#312e81", // new deep indigo
-                    "#000000", // black
+                    "#78350f",
+                    "#92400e",
+                    "#b45309",
+                    "#b91c1c",
+                    "#9d174d",
+                    "#5b21b6",
+                    "#1d4ed8",
+                    "#065f46",
+                    "#374151",
+                    "#064e3b",
+                    "#312e81",
+                    "#000000",
                   ].map(color => (
                     <button
                       key={color}
@@ -436,16 +619,31 @@ export function Toolbar({
               </div>
             </PopoverContent>
           </Popover>
-
-          {/* Link */}
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().toggleHighlight().run()}
+          >
+            <Highlighter className="mr-2 size-4" />
+            Highlight
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "link",
+        jsx: (
+          <Popover
+            key="link"
+            open={isPopoverOpen}
+            onOpenChange={setIsPopoverOpen}
+          >
             <Tooltip>
               <TooltipTrigger asChild>
                 <PopoverTrigger asChild>
                   <Button
                     size="sm"
                     variant="ghost"
-                    className={`hidden md:inline-flex ${itemCls(editor.isActive("link"))}`}
+                    className={itemCls(editor.isActive("link"))}
                     aria-label="Link"
                   >
                     <Link
@@ -493,16 +691,32 @@ export function Toolbar({
               </div>
             </PopoverContent>
           </Popover>
-
-          <div className="bg-border mx-1 hidden h-5 w-px md:block" />
-
-          {/* Superscript/Subscript */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => {
+              setIsPopoverOpen(true);
+            }}
+          >
+            <Link className="mr-2 size-4" />
+            Link
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "divider-3",
+        jsx: <div key="divider-3" className="bg-border mx-1 h-5 w-px" />,
+        dropdownJsx: <DropdownMenuSeparator key="d-sep-3" />,
+      },
+      {
+        id: "superscript",
+        jsx: (
+          <Tooltip key="superscript">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive("superscript"))}`}
+                className={itemCls(editor.isActive("superscript"))}
                 onClick={() => {
                   if (editor.can().toggleSuperscript?.()) {
                     editor.chain().focus().toggleSuperscript().run();
@@ -517,12 +731,29 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Superscript</TooltipContent>
           </Tooltip>
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => {
+              if (editor.can().toggleSuperscript?.()) {
+                editor.chain().focus().toggleSuperscript().run();
+              }
+            }}
+          >
+            <Superscript className="mr-2 size-4" />
+            Superscript
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "subscript",
+        jsx: (
+          <Tooltip key="subscript">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive("subscript"))}`}
+                className={itemCls(editor.isActive("subscript"))}
                 onClick={() => {
                   if (editor.can().toggleSubscript?.()) {
                     editor.chain().focus().toggleSubscript().run();
@@ -537,16 +768,34 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Subscript</TooltipContent>
           </Tooltip>
-
-          <div className="bg-border mx-0.5 hidden h-5 w-px md:block" />
-
-          {/* Alignment buttons */}
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => {
+              if (editor.can().toggleSubscript?.()) {
+                editor.chain().focus().toggleSubscript().run();
+              }
+            }}
+          >
+            <Subscript className="mr-2 size-4" />
+            Subscript
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "divider-4",
+        jsx: <div key="divider-4" className="bg-border mx-0.5 h-5 w-px" />,
+        dropdownJsx: <DropdownMenuSeparator key="d-sep-4" />,
+      },
+      {
+        id: "align-left",
+        jsx: (
+          <Tooltip key="align-left">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "left" }))}`}
+                className={itemCls(editor.isActive({ textAlign: "left" }))}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("left").run()
                 }
@@ -559,12 +808,25 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Align Left</TooltipContent>
           </Tooltip>
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          >
+            <AlignLeft className="mr-2 size-4" />
+            Align Left
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "align-center",
+        jsx: (
+          <Tooltip key="align-center">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "center" }))}`}
+                className={itemCls(editor.isActive({ textAlign: "center" }))}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("center").run()
                 }
@@ -577,12 +839,25 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Align Center</TooltipContent>
           </Tooltip>
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          >
+            <AlignCenter className="mr-2 size-4" />
+            Align Center
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "align-right",
+        jsx: (
+          <Tooltip key="align-right">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "right" }))}`}
+                className={itemCls(editor.isActive({ textAlign: "right" }))}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("right").run()
                 }
@@ -595,12 +870,25 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Align Right</TooltipContent>
           </Tooltip>
-          <Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          >
+            <AlignRight className="mr-2 size-4" />
+            Align Right
+          </DropdownMenuItem>
+        ),
+      },
+      {
+        id: "align-justify",
+        jsx: (
+          <Tooltip key="align-justify">
             <TooltipTrigger asChild>
               <Button
                 size="sm"
                 variant="ghost"
-                className={`hidden md:inline-flex ${itemCls(editor.isActive({ textAlign: "justify" }))}`}
+                className={itemCls(editor.isActive({ textAlign: "justify" }))}
                 onClick={() =>
                   editor.chain().focus().setTextAlign("justify").run()
                 }
@@ -613,122 +901,45 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>Justify</TooltipContent>
           </Tooltip>
+        ),
+        dropdownJsx: (
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+          >
+            <AlignJustify className="mr-2 size-4" />
+            Justify
+          </DropdownMenuItem>
+        ),
+      },
+    ],
+    [editor, isPopoverOpen, isHighlightPopoverOpen, linkUrl]
+  );
 
-          {/* Mobile dropdown menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="md:hidden"
-                aria-label="More formatting options"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleBold().run()}
-              >
-                <Bold className="mr-2 size-4" />
-                Bold
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-              >
-                <Italic className="mr-2 size-4" />
-                Italic
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleStrike().run()}
-              >
-                <Strikethrough className="mr-2 size-4" />
-                Strikethrough
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleUnderline().run()}
-              >
-                <Underline className="mr-2 size-4" />
-                Underline
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleCode().run()}
-              >
-                <Code className="mr-2 size-4" />
-                Inline Code
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (editor.can().toggleSuperscript?.()) {
-                    editor.chain().focus().toggleSuperscript().run();
-                  }
-                }}
-              >
-                <Superscript className="mr-2 size-4" />
-                Superscript
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  if (editor.can().toggleSubscript?.()) {
-                    editor.chain().focus().toggleSubscript().run();
-                  }
-                }}
-              >
-                <Subscript className="mr-2 size-4" />
-                Subscript
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => editor.chain().focus().toggleHighlight().run()}
-              >
-                <Highlighter className="mr-2 size-4" />
-                Highlight
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  editor.chain().focus().setTextAlign("left").run()
-                }
-              >
-                <AlignLeft className="mr-2 size-4" />
-                Align Left
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  editor.chain().focus().setTextAlign("center").run()
-                }
-              >
-                <AlignCenter className="mr-2 size-4" />
-                Align Center
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  editor.chain().focus().setTextAlign("right").run()
-                }
-              >
-                <AlignRight className="mr-2 size-4" />
-                Align Right
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  editor.chain().focus().setTextAlign("justify").run()
-                }
-              >
-                <AlignJustify className="mr-2 size-4" />
-                Justify
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => {
-                  const attrs = editor.getAttributes("link");
-                  setLinkUrl(attrs.href || "");
-                  setIsPopoverOpen(true);
-                }}
-              >
-                <Link className="mr-2 size-4" />
-                Link
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+  const visibleTools = allTools.slice(0, visibleItemsCount);
+  const hiddenTools = allTools.slice(visibleItemsCount);
+
+  return (
+    <div className="flex w-full items-center gap-2 border-b px-3 py-2">
+      {/* Use the full flex-1 container as the measured area so we can center an auto-width toolbar inside it */}
+      <div
+        ref={toolbarRef}
+        className="flex min-w-0 flex-1 items-center justify-start md:justify-center"
+      >
+        {/* inner toolbar is auto-width so it can be centered by the parent on md+ screens */}
+        <div className="toolbar-inner flex items-center gap-1 overflow-hidden">
+          {visibleTools.map(tool => tool.jsx)}
+          {hiddenTools.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="ghost" className="h-8 px-2">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {hiddenTools.map(tool => tool.dropdownJsx)}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
       <Button
@@ -736,6 +947,7 @@ export function Toolbar({
         onClick={onSave}
         disabled={disabled || saving}
         variant="default"
+        className="flex-shrink-0"
       >
         <Save className="size-4 md:mr-1.5" />
         <span className="hidden md:inline">
@@ -746,6 +958,7 @@ export function Toolbar({
   );
 }
 
+// ... (NoteEditor and defaultDoc components remain unchanged)
 export function NoteEditor({ editor }: { editor: any }) {
   if (!editor) return null;
 
@@ -757,18 +970,3 @@ export function NoteEditor({ editor }: { editor: any }) {
     </div>
   );
 }
-
-const defaultDoc = {
-  type: "doc",
-  content: [
-    {
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: "Start writing your note here...",
-        },
-      ],
-    },
-  ],
-};

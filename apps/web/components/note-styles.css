@@ -199,6 +199,13 @@
   }
 
   /* Horizontal rule */
+
+  /* Toolbar helpers */
+  .toolbar-inner > * {
+    /* prevent buttons from shrinking on narrow widths */
+    flex: 0 0 auto;
+  }
+
   .tiptap hr {
     border: none;
     border-top: 1px solid var(--border);

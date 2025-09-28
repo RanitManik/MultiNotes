@@ -186,10 +186,10 @@ describe("Invite API", () => {
       test: async ({ fetch }) => {
         const res = await fetch({
           method: "POST",
-          body: JSON.stringify({ 
-            email: "test@example.com", 
+          body: JSON.stringify({
+            email: "test@example.com",
             role: "member",
-            password: "custompassword123"
+            password: "custompassword123",
           }),
         });
         expect(res.status).toBe(200);

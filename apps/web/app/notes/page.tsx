@@ -56,10 +56,6 @@ import { useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Heading from "@tiptap/extension-heading";
-import BulletList from "@tiptap/extension-bullet-list";
-import OrderedList from "@tiptap/extension-ordered-list";
-import Blockquote from "@tiptap/extension-blockquote";
-import CodeBlock from "@tiptap/extension-code-block";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Link from "@tiptap/extension-link";
@@ -1321,15 +1317,12 @@ function NoteEditorContainer({
 
   const editor = useEditor({
     content: defaultDoc,
+    immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: false,
       }),
       Heading.configure({ levels: [1, 2, 3] }),
-      BulletList,
-      OrderedList,
-      Blockquote,
-      CodeBlock,
       TaskList,
       TaskItem,
       Link.configure({

@@ -1016,9 +1016,7 @@ export function Toolbar({
         className="flex-shrink-0"
       >
         <Save className="size-4 md:mr-1.5" />
-        <span className="hidden md:inline">
-          Save
-        </span>
+        <span className="hidden md:inline">Save</span>
       </Button>
     </div>
   );

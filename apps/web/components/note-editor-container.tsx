@@ -143,6 +143,11 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
           {
             loading: "Saving note...",
             success: () => {
+              onNoteUpdate(noteId, {
+                title: titleToSave,
+                updated_at: new Date().toISOString(),
+              });
+              onDirtyChange(false);
               setSaving(false);
               return "Note saved!";
             },
@@ -152,13 +157,6 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
             },
           }
         );
-
-        onNoteUpdate(noteId, {
-          title: titleToSave,
-          updated_at: new Date().toISOString(),
-        });
-
-        onDirtyChange(false);
 
         // To ensure the undo/redo buttons update, manually clear the history stacks
         // and then dispatch an empty transaction to force a state update.

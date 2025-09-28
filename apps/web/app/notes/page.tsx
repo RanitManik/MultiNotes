@@ -951,14 +951,14 @@ function SidebarContent({
               onClick={() => onSelectNote(note.id)}
               aria-current={selectedId === note.id ? "page" : undefined}
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="grid grid-cols-[1fr_auto] items-center gap-2">
                 <span className="truncate">{note.title || "Untitled"}</span>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-muted-foreground hover:text-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                      className="text-muted-foreground hover:text-foreground opacity-0 transition-all focus:ring-0 group-hover:opacity-100 data-[state=open]:opacity-100"
                       onClick={e => e.stopPropagation()}
                     >
                       <MoreHorizontal className="h-4 w-4" />

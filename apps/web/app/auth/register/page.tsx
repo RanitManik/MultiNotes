@@ -68,7 +68,10 @@ export default function RegisterPage() {
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="registerEmail" className="flex items-center gap-2">
+              <Label
+                htmlFor="registerEmail"
+                className="flex items-center gap-2"
+              >
                 <Mail className="h-4 w-4" />
                 Email
               </Label>
@@ -98,7 +101,10 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="registerPassword" className="flex items-center gap-2">
+              <Label
+                htmlFor="registerPassword"
+                className="flex items-center gap-2"
+              >
                 <Lock className="h-4 w-4" />
                 Password
               </Label>
@@ -135,7 +141,7 @@ export default function RegisterPage() {
               <button
                 type="button"
                 onClick={() => router.push("/auth/login")}
-                className="text-primary hover:underline font-medium"
+                className="text-primary font-medium hover:underline"
               >
                 Sign in
               </button>

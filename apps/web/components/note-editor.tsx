@@ -113,7 +113,7 @@ function Toolbar({ editor }: { editor: any }) {
     (active ? "bg-accent" : "bg-card hover:bg-accent/60");
 
   return (
-    <div className="relative flex w-full items-center gap-1 px-3 py-2">
+    <div className="relative flex w-full items-center gap-1 overflow-x-auto px-3 py-2">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

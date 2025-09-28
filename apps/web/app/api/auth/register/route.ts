@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     // Generate tenant slug from name
     const slug = tenantName
       .toLowerCase()
-      .replace(/[^a-z0-9]/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
+      .replace(/[^a-z0-9]/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
 
     // Check if tenant slug already exists
     const existingTenant = await prisma.tenant.findUnique({
@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create tenant and user in a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async tx => {
       const tenant = await tx.tenant.create({
         data: {
           slug,

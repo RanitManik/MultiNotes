@@ -442,8 +442,8 @@ export default function NotesDashboard() {
         }
 
         // 🎊 Show confetti and fade it out smoothly before hiding.
-        const DURATION = 5000; // total confetti duration
-        const FADE_MS = 700; // fade duration at the end
+        const DURATION = 6000; // total confetti duration
+        const FADE_MS = 1000; // fade duration at the end
         // Clear any existing timers
         if (confettiTimers.current.fade)
           clearTimeout(confettiTimers.current.fade);
@@ -493,7 +493,17 @@ export default function NotesDashboard() {
             width={width}
             height={height}
             recycle={false}
-            numberOfPieces={300}
+            numberOfPieces={400}
+            gravity={0.15}
+            colors={[
+              "#10b981",
+              "#3b82f6",
+              "#8b5cf6",
+              "#f59e0b",
+              "#ef4444",
+              "#ec4899",
+            ]}
+            tweenDuration={3000}
           />
         </div>
       )}
@@ -664,7 +674,7 @@ export default function NotesDashboard() {
             onLogout={handleLogout}
           >
             {/* Mobile Sheet (Drawer) that contains the sidebar content */}
-            <SheetContent side="left" className="w-72 p-0">
+            <SheetContent side="left" className="w-72 gap-0 p-0">
               <SidebarContent
                 notes={notes}
                 notesLoading={notesLoading}
@@ -1032,51 +1042,43 @@ function Topbar({
   onLogout,
 }: any) {
   return (
-    <header className="bg-card flex w-full items-center px-3 py-2 md:hidden md:justify-between">
-      {/* Mobile Menu Button - only visible on small screens */}
+    <header className="bg-card flex w-full items-center justify-between px-3 py-2 md:hidden">
+      {/* Mobile Menu Button */}
       <Sheet open={isSheetOpen} onOpenChange={onOpenSheet}>
         <SheetTrigger asChild>
-          <Button size="icon" variant="outline" className="md:hidden">
+          <Button size="icon" variant="outline">
             <Menu className="size-4" />
           </Button>
         </SheetTrigger>
         {children} {/* The SheetContent is passed as a child */}
       </Sheet>
 
-      {/* Note count and plan info for mobile */}
-      <div className="text-muted-foreground text-xs md:hidden">
-        {tenantLoading ? (
-          <Skeleton className="h-3 w-16" />
-        ) : tenant.plan === "FREE" && tenant.limit !== null ? (
-          `${tenant.noteCount} / ${tenant.limit} Notes`
-        ) : (
-          `${tenant.noteCount || 0} Notes`
-        )}
+      {/* Tenant info */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2">
+          <span className="truncate text-pretty text-sm font-medium">
+            {tenant?.slug}
+          </span>
+          <Badge
+            variant="secondary"
+            className="px-1.5 py-0.5 text-xs font-medium"
+          >
+            {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
+          </Badge>
+        </div>
       </div>
 
-      <div className="ml-auto flex items-center gap-2">
+      {/* Actions */}
+      <div className="flex items-center gap-2">
         {tenantLoading ? (
-          <>
-            <Skeleton className="h-5 w-16" />
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-8 w-20" />
-          </>
+          <Skeleton className="h-8 w-24" />
         ) : (
-          <>
-            <Badge variant={user?.tenantPlan === "pro" ? "default" : "outline"}>
-              {user?.tenantPlan === "pro" ? "Pro Plan" : "Free Plan"}
-            </Badge>
-            {canUpgrade && (
-              <Button size="sm" onClick={onUpgrade} variant="secondary">
-                <Sparkles className="mr-1.5 size-4" />
-                Upgrade to Pro
-              </Button>
-            )}
-            <Button onClick={onLogout} variant="outline" size="sm">
-              <LogOut className="h-4 w-4" />
-              Log out
+          canUpgrade && (
+            <Button size="sm" onClick={onUpgrade} variant="secondary">
+              <Sparkles className="mr-1.5 size-4" />
+              Upgrade
             </Button>
-          </>
+          )
         )}
       </div>
     </header>

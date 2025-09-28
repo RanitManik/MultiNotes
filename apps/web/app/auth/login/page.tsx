@@ -151,7 +151,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => router.push("/auth/register")}
-                className="text-primary hover:underline font-medium"
+                className="text-primary font-medium hover:underline"
               >
                 Sign up
               </button>

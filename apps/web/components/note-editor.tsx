@@ -1017,7 +1017,7 @@ export function Toolbar({
       >
         <Save className="size-4 md:mr-1.5" />
         <span className="hidden md:inline">
-          {saving ? "Saving..." : "Save"}
+          Save
         </span>
       </Button>
     </div>

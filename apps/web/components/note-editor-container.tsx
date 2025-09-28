@@ -142,8 +142,14 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
           }),
           {
             loading: "Saving note...",
-            success: "Note saved!",
-            error: "Failed to save note.",
+            success: () => {
+              setSaving(false);
+              return "Note saved!";
+            },
+            error: () => {
+              setSaving(false);
+              return "Failed to save note.";
+            },
           }
         );
 
@@ -165,7 +171,6 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
       } catch (err) {
         // Error is handled by toast.promise
       } finally {
-        setSaving(false);
         editor.setEditable(true);
       }
     },

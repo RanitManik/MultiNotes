@@ -461,6 +461,8 @@ function NotesDashboardContent() {
 
   const handleLogout = () => {
     localStorage.removeItem("auth:token");
+    // Clear all cached data to prevent showing previous user's data
+    queryClient.clear();
     router.push("/auth/login");
   };
 

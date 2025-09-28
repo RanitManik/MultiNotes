@@ -855,13 +855,12 @@ function SidebarContent({
             </div>
           </div>
         </div>
-
+        <Separator className="my-4" />
         <div className="space-y-2 px-2">
           <Skeleton className="h-8 w-full" />
           <Skeleton className="h-8 w-full" />
         </div>
-        <Separator />
-
+        <Separator className="my-4" />
         <div className="flex-1 space-y-2 px-2">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-12 w-full" />
@@ -1386,7 +1385,7 @@ function NoteEditorContainer({
         disabled={!dirty}
         saving={saving}
       />
-      <ScrollArea className="h-[calc(100vh-100px)] md:h-[calc(100vh-50px)]">
+      <ScrollArea className="h-[calc(100vh-120px)] md:h-[calc(100vh-60px)]">
         <div className="mx-auto mt-6 w-full max-w-4xl px-4 md:px-6">
           <input
             className="text-foreground w-full resize-none border-none bg-transparent text-4xl font-bold focus:outline-none"

@@ -38,6 +38,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
+import { EasterEgg } from "@workspace/ui/components/easter-egg";
 import {
   Select,
   SelectContent,
@@ -546,6 +547,10 @@ export default function NotesDashboard() {
           />
         </div>
       )}
+
+      <div style={{ display: "none" }}>
+        <EasterEgg />
+      </div>
 
       {/* Create Note Dialog */}
       <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>

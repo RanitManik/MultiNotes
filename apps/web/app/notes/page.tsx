@@ -13,6 +13,11 @@ import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@workspace/ui/components/tooltip";
+import {
   Sheet,
   SheetContent,
   SheetTrigger,
@@ -106,14 +111,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@workspace/ui/components/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import { toast } from "sonner";
-import Confetti from "react-confetti";
+const Confetti = React.lazy(() => import("react-confetti"));
 import { useTheme } from "next-themes";
 
 // TanStack Query imports
@@ -532,22 +532,24 @@ function NotesDashboardContent() {
             confettiFading ? "opacity-0" : "opacity-100"
           }`}
         >
-          <Confetti
-            width={width}
-            height={height}
-            recycle={false}
-            numberOfPieces={400}
-            gravity={0.15}
-            colors={[
-              "#10b981",
-              "#3b82f6",
-              "#8b5cf6",
-              "#f59e0b",
-              "#ef4444",
-              "#ec4899",
-            ]}
-            tweenDuration={3000}
-          />
+          <React.Suspense fallback={null}>
+            <Confetti
+              width={width}
+              height={height}
+              recycle={false}
+              numberOfPieces={400}
+              gravity={0.15}
+              colors={[
+                "#10b981",
+                "#3b82f6",
+                "#8b5cf6",
+                "#f59e0b",
+                "#ef4444",
+                "#ec4899",
+              ]}
+              tweenDuration={3000}
+            />
+          </React.Suspense>
         </div>
       )}
 

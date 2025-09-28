@@ -60,6 +60,8 @@ export function Toolbar({
   disabled: boolean;
   saving: boolean;
 }) {
+  if (!editor) return null;
+
   const [linkUrl, setLinkUrl] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isHighlightPopoverOpen, setIsHighlightPopoverOpen] = useState(false);
@@ -68,12 +70,24 @@ export function Toolbar({
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [visibleItemsCount, setVisibleItemsCount] = useState(20); // Start with a high number
 
+  const [updateCounter, setUpdateCounter] = useState(0);
+
   useEffect(() => {
     if (isPopoverOpen) {
       const attrs = editor.getAttributes("link");
       setLinkUrl(attrs.href || "");
     }
   }, [isPopoverOpen, editor]);
+
+  useEffect(() => {
+    const handleUpdate = () => setUpdateCounter(c => c + 1);
+    editor.on("update", handleUpdate);
+    editor.on("selectionUpdate", handleUpdate);
+    return () => {
+      editor.off("update", handleUpdate);
+      editor.off("selectionUpdate", handleUpdate);
+    };
+  }, [editor]);
 
   // This effect observes the toolbar width and calculates how many items can fit
   useEffect(() => {
@@ -98,13 +112,13 @@ export function Toolbar({
   }, []);
   // --- End of responsiveness logic ---
 
-  if (!editor) return null;
   const itemCls = (active: boolean) =>
     // Use tokens, avoid direct colors
     "h-8 px-2 text-xs border rounded-md " +
-    (active ? "bg-accent" : "bg-card hover:bg-accent/60");
+    (active
+      ? "bg-primary/10 border-primary text-primary"
+      : "bg-card hover:bg-accent/60");
 
-  // We define all dynamic tool items in an array of objects for easier slicing and custom dropdown rendering
   const allTools = useMemo(
     () => [
       {
@@ -912,7 +926,7 @@ export function Toolbar({
         ),
       },
     ],
-    [editor, isPopoverOpen, isHighlightPopoverOpen, linkUrl]
+    [editor, isPopoverOpen, isHighlightPopoverOpen, linkUrl, updateCounter]
   );
 
   const visibleTools = allTools.slice(0, visibleItemsCount);

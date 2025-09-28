@@ -731,7 +731,7 @@ export default function NotesDashboard() {
         </Alert>
       )}
 
-      <div className="flex min-h-svh w-full">
+      <div className="flex h-svh w-full overflow-hidden">
         {/* Permanent Sidebar for medium screens and up (desktops) */}
         <aside className="bg-card hidden w-72 shrink-0 flex-col border-r md:flex">
           <SidebarContent
@@ -949,7 +949,7 @@ function SidebarContent({
       </div>
       <Separator className="my-4" />
 
-      <ScrollArea className="flex-1">
+      <ScrollArea className="min-h-0 flex-1">
         <nav className="space-y-1 px-2 pb-2">
           {notesError && (
             <p className="text-destructive px-2 py-1.5 text-xs">

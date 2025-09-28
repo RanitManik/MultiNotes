@@ -104,8 +104,14 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
         // Create a transaction that sets content and clears history atomically
         const { state, view } = editor;
         const tr = state.tr;
-        tr.setMeta('addToHistory', false); // Don't add this to history
-        tr.replaceWith(0, state.doc.content.size, note.content.content ? state.schema.nodeFromJSON(note.content) : state.schema.node('doc'));
+        tr.setMeta("addToHistory", false); // Don't add this to history
+        tr.replaceWith(
+          0,
+          state.doc.content.size,
+          note.content.content
+            ? state.schema.nodeFromJSON(note.content)
+            : state.schema.node("doc")
+        );
         view.dispatch(tr);
 
         // Clear history storage after the transaction

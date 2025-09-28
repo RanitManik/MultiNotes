@@ -309,6 +309,16 @@ export default function NotesDashboard() {
   }, [user, limitReached]);
 
   // Handlers for creating, deleting, and selecting notes.
+  const handleSelectNote = (id: string) => {
+    setSelectedId(id);
+    setIsSheetOpen(false); // Close mobile sheet on selection.
+
+    // Update URL with the selected note
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.set("note", id);
+    router.replace(`?${newSearchParams.toString()}`, { scroll: false });
+  };
+
   const handleCreateNote = async (e: React.FormEvent) => {
     e.preventDefault();
     if (limitReached) {
@@ -339,28 +349,27 @@ export default function NotesDashboard() {
     setError("");
 
     try {
-      const result = await createNoteMutation.mutateAsync(noteData);
-
-      await toast.promise(
-        Promise.resolve(result), // Wrap in promise for toast.promise
-        {
-          loading: "Creating note...",
-          success: "Note created successfully",
-          error: "Failed to create note",
-        }
-      );
-
-      // Show additional toast with action to open the created note (only if we have the ID)
-      if (result?.id) {
-        setTimeout(() => {
-          toast.success(`"${result.title || "Untitled"}" is ready to edit`, {
-            action: {
-              label: "Open",
-              onClick: () => handleSelectNote(result.id),
-            },
-          });
-        }, 500); // Small delay to show after the main success toast
-      }
+      await toast.promise(createNoteMutation.mutateAsync(noteData), {
+        loading: "Creating note...",
+        success: result => {
+          // Show additional toast with action to open the created note (only if we have the ID)
+          if (result?.id) {
+            setTimeout(() => {
+              toast.success(
+                `"${result.title || "Untitled"}" is ready to edit`,
+                {
+                  action: {
+                    label: "Open",
+                    onClick: () => handleSelectNote(result.id),
+                  },
+                }
+              );
+            }, 500); // Small delay to show after the main success toast
+          }
+          return "Note created successfully";
+        },
+        error: "Failed to create note",
+      });
 
       setIsSheetOpen(false);
     } catch (err) {
@@ -421,16 +430,6 @@ export default function NotesDashboard() {
       //
     }
     setDeleteNoteId(null);
-  };
-
-  const handleSelectNote = (id: string) => {
-    setSelectedId(id);
-    setIsSheetOpen(false); // Close mobile sheet on selection.
-
-    // Update URL with the selected note
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("note", id);
-    router.replace(`?${newSearchParams.toString()}`, { scroll: false });
   };
 
   const handleInviteUser = async (e: React.FormEvent) => {

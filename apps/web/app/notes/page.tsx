@@ -211,6 +211,7 @@ function NotesDashboardContent() {
   const [inviteRole, setInviteRole] = useState<"admin" | "member">("member");
   const [invitePassword, setInvitePassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [inviteError, setInviteError] = useState("");
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [error, setError] = useState("");
@@ -462,6 +463,7 @@ function NotesDashboardContent() {
 
   const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault();
+    setInviteError(""); // Clear any previous error
     try {
       const result = await inviteUserMutation.mutateAsync({
         email: inviteEmail,
@@ -482,8 +484,19 @@ function NotesDashboardContent() {
       setInviteRole("member");
       setInvitePassword("");
       setShowPassword(false);
+      setInviteError("");
     } catch (err: any) {
-      toast.error("Failed to invite user");
+      // Try to extract the error message from the API response
+      let errorMessage = "Failed to invite user";
+      if (err && typeof err.json === "function") {
+        try {
+          const errorData = await err.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // If we can't parse the error response, use the default message
+        }
+      }
+      setInviteError(errorMessage);
     }
   };
 
@@ -770,6 +783,12 @@ function NotesDashboardContent() {
                   generated and copied to your clipboard.
                 </p>
               </div>
+              {inviteError && (
+                <Alert variant="destructive">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>{inviteError}</AlertDescription>
+                </Alert>
+              )}
               <div className="flex justify-end space-x-2">
                 <Button
                   type="button"
@@ -780,6 +799,7 @@ function NotesDashboardContent() {
                     setInviteRole("member");
                     setInvitePassword("");
                     setShowPassword(false);
+                    setInviteError("");
                   }}
                   disabled={inviteUserMutation.isPending}
                 >

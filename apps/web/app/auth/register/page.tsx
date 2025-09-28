@@ -13,7 +13,7 @@ import {
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Loader2, Mail, Lock, Building } from "lucide-react";
+import { Loader2, Mail, Lock, Building, AlertTriangle } from "lucide-react";
 
 export default function RegisterPage() {
   const [registerEmail, setRegisterEmail] = useState("");
@@ -158,6 +158,7 @@ export default function RegisterPage() {
             </div>
             {error && (
               <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}

@@ -339,18 +339,32 @@ export default function NotesDashboard() {
     setError("");
 
     try {
-      const result = (await toast.promise(
-        createNoteMutation.mutateAsync(noteData),
+      const result = await createNoteMutation.mutateAsync(noteData);
+
+      await toast.promise(
+        Promise.resolve(result), // Wrap in promise for toast.promise
         {
           loading: "Creating note...",
           success: "Note created successfully",
           error: "Failed to create note",
         }
-      )) as unknown as Note;
-      setSelectedId(result.id);
+      );
+
+      // Show additional toast with action to open the created note (only if we have the ID)
+      if (result?.id) {
+        setTimeout(() => {
+          toast.success(`"${result.title || "Untitled"}" is ready to edit`, {
+            action: {
+              label: "Open",
+              onClick: () => handleSelectNote(result.id),
+            },
+          });
+        }, 500); // Small delay to show after the main success toast
+      }
+
       setIsSheetOpen(false);
     } catch (err) {
-      //
+      toast.error("Failed to create note");
     }
   };
 

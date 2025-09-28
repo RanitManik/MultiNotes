@@ -132,7 +132,7 @@ export function Toolbar({
                 variant="ghost"
                 className={itemCls(false)}
                 onClick={() => editor.chain().focus().undo().run()}
-                disabled={!editor.can().undo()}
+                disabled={!editor.can().undo() || disabled}
                 aria-label="Undo"
               >
                 <Undo className="size-4" />
@@ -190,6 +190,7 @@ export function Toolbar({
                     className={itemCls(editor.isActive("heading"))}
                     aria-label="Headings"
                     style={{ width: "36px", gap: "1px" }}
+                    disabled={saving}
                   >
                     {editor.isActive("heading", { level: 1 }) ? (
                       <span
@@ -288,6 +289,7 @@ export function Toolbar({
                     )}
                     aria-label="Lists"
                     style={{ width: "36px", gap: "1px" }}
+                    disabled={saving}
                   >
                     {editor.isActive("bulletList") ? (
                       <List
@@ -368,6 +370,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("blockquote"))}
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
                 aria-label="Quote"
+                disabled={saving}
               >
                 <Quote
                   className={`size-4 ${editor.isActive("blockquote") ? "text-primary" : ""}`}
@@ -397,6 +400,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("codeBlock"))}
                 onClick={() => editor.chain().focus().toggleCodeBlock().run()}
                 aria-label="Code Block"
+                disabled={saving}
               >
                 <Code2
                   className={`size-4 ${editor.isActive("codeBlock") ? "text-primary" : ""}`}
@@ -426,6 +430,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("horizontalRule"))}
                 onClick={() => editor.chain().focus().setHorizontalRule().run()}
                 aria-label="Divider"
+                disabled={saving}
               >
                 <Minus
                   className={`size-4 ${editor.isActive("horizontalRule") ? "text-primary" : ""}`}
@@ -460,6 +465,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("bold"))}
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 aria-label="Bold"
+                disabled={saving}
               >
                 <Bold
                   className={`size-4 ${editor.isActive("bold") ? "text-primary" : ""}`}
@@ -489,6 +495,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("italic"))}
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 aria-label="Italic"
+                disabled={saving}
               >
                 <Italic
                   className={`size-4 ${editor.isActive("italic") ? "text-primary" : ""}`}
@@ -518,6 +525,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("strike"))}
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 aria-label="Strikethrough"
+                disabled={saving}
               >
                 <Strikethrough
                   className={`size-4 ${editor.isActive("strike") ? "text-primary" : ""}`}
@@ -547,6 +555,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("code"))}
                 onClick={() => editor.chain().focus().toggleCode().run()}
                 aria-label="Inline Code"
+                disabled={saving}
               >
                 <Code
                   className={`size-4 ${editor.isActive("code") ? "text-primary" : ""}`}
@@ -576,6 +585,7 @@ export function Toolbar({
                 className={itemCls(editor.isActive("underline"))}
                 onClick={() => editor.chain().focus().toggleUnderline().run()}
                 aria-label="Underline"
+                disabled={saving}
               >
                 <Underline
                   className={`size-4 ${editor.isActive("underline") ? "text-primary" : ""}`}
@@ -610,6 +620,7 @@ export function Toolbar({
                     variant="ghost"
                     className={itemCls(editor.isActive("highlight"))}
                     aria-label="Highlight"
+                    disabled={saving}
                   >
                     <Highlighter
                       className={`size-4 ${editor.isActive("highlight") ? "text-primary" : ""}`}
@@ -689,6 +700,7 @@ export function Toolbar({
                     variant="ghost"
                     className={itemCls(editor.isActive("link"))}
                     aria-label="Link"
+                    disabled={saving}
                   >
                     <Link
                       className={`size-4 ${editor.isActive("link") ? "text-primary" : ""}`}
@@ -767,6 +779,7 @@ export function Toolbar({
                   }
                 }}
                 aria-label="Superscript"
+                disabled={saving}
               >
                 <Superscript
                   className={`size-4 ${editor.isActive("superscript") ? "text-primary" : ""}`}
@@ -804,6 +817,7 @@ export function Toolbar({
                   }
                 }}
                 aria-label="Subscript"
+                disabled={saving}
               >
                 <Subscript
                   className={`size-4 ${editor.isActive("subscript") ? "text-primary" : ""}`}
@@ -844,6 +858,7 @@ export function Toolbar({
                   editor.chain().focus().setTextAlign("left").run()
                 }
                 aria-label="Align Left"
+                disabled={saving}
               >
                 <AlignLeft
                   className={`size-4 ${editor.isActive({ textAlign: "left" }) ? "text-primary" : ""}`}
@@ -875,6 +890,7 @@ export function Toolbar({
                   editor.chain().focus().setTextAlign("center").run()
                 }
                 aria-label="Align Center"
+                disabled={saving}
               >
                 <AlignCenter
                   className={`size-4 ${editor.isActive({ textAlign: "center" }) ? "text-primary" : ""}`}
@@ -906,6 +922,7 @@ export function Toolbar({
                   editor.chain().focus().setTextAlign("right").run()
                 }
                 aria-label="Align Right"
+                disabled={saving}
               >
                 <AlignRight
                   className={`size-4 ${editor.isActive({ textAlign: "right" }) ? "text-primary" : ""}`}
@@ -937,6 +954,7 @@ export function Toolbar({
                   editor.chain().focus().setTextAlign("justify").run()
                 }
                 aria-label="Justify"
+                disabled={saving}
               >
                 <AlignJustify
                   className={`size-4 ${editor.isActive({ textAlign: "justify" }) ? "text-primary" : ""}`}

@@ -143,8 +143,8 @@ function NotesDashboardContent() {
 
   // State for managing the currently selected note
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  // Ref set by NoteEditorContainer to indicate whether there are unsaved changes
-  const editorDirtyRef = useRef<boolean>(false);
+  // State set by NoteEditorContainer to indicate whether there are unsaved changes
+  const [isEditorDirty, setIsEditorDirty] = useState(false);
   // Ref to a save function registered by NoteEditorContainer so parent can trigger a save
   const saveCurrentNoteRef = useRef<(() => Promise<void>) | null>(null);
   // Pending selection when user attempts to switch while having unsaved changes
@@ -260,9 +260,8 @@ function NotesDashboardContent() {
   // Handlers for creating, deleting, and selecting notes.
   const handleSelectNote = useCallback(
     (id: string) => {
-      // If there are unsaved changes in the current editor, prompt the user
-      // before switching notes.
-      if (editorDirtyRef.current && id !== selectedId) {
+      // Use the 'isEditorDirty' state variable here
+      if (isEditorDirty && id !== selectedId) {
         setPendingSelectId(id);
         setShowUnsavedDialog(true);
         return;
@@ -277,7 +276,8 @@ function NotesDashboardContent() {
       newSearchParams.set("note", id);
       router.replace(`?${newSearchParams.toString()}`, { scroll: false });
     },
-    [selectedId, searchParams, router]
+    // Add 'isEditorDirty' to the dependency array
+    [isEditorDirty, selectedId, searchParams, router]
   );
 
   // Helper to actually proceed with selection (bypassing the unsaved check)
@@ -292,10 +292,6 @@ function NotesDashboardContent() {
     },
     [searchParams, router]
   );
-
-  const setEditorDirtyRefFalse = () => {
-    editorDirtyRef.current = false;
-  };
 
   const handleCreateNote = useCallback(
     async (e: React.FormEvent) => {
@@ -921,10 +917,8 @@ function NotesDashboardContent() {
                 <NoteEditorContainer
                   noteId={selectedId}
                   onNoteUpdate={updateNoteInList}
-                  // Provide refs so the child can register dirty state and save
-                  registerDirtyRef={(ref: boolean) =>
-                    (editorDirtyRef.current = ref)
-                  }
+                  isDirty={isEditorDirty}
+                  onDirtyChange={setIsEditorDirty}
                   registerSaveFn={(fn: () => Promise<void>) =>
                     (saveCurrentNoteRef.current = fn)
                   }
@@ -951,7 +945,7 @@ function NotesDashboardContent() {
                         onClick={async () => {
                           // Discard changes and proceed
                           setShowUnsavedDialog(false);
-                          setEditorDirtyRefFalse();
+                          setIsEditorDirty(false);
                           if (pendingSelectId)
                             handleSelectNoteProceed(pendingSelectId);
                         }}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { NoteEditor, Toolbar } from "./note-editor";
@@ -24,7 +24,8 @@ import { useNote, useUpdateNote } from "@/lib/api";
 interface NoteEditorContainerProps {
   noteId: string;
   onNoteUpdate: (noteId: string, updates: Partial<Note>) => void;
-  registerDirtyRef?: (isDirty: boolean) => void;
+  isDirty: boolean;
+  onDirtyChange: (isDirty: boolean) => void;
   registerSaveFn?: (fn: () => Promise<void>) => void;
 }
 
@@ -33,7 +34,8 @@ interface NoteEditorContainerProps {
 export const NoteEditorContainer = React.memo(function NoteEditorContainer({
   noteId,
   onNoteUpdate,
-  registerDirtyRef,
+  isDirty,
+  onDirtyChange,
   registerSaveFn,
 }: NoteEditorContainerProps) {
   const { data: noteData, isLoading, error } = useNote(noteId);
@@ -41,30 +43,25 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
 
   const note = noteData;
   const [currentTitle, setCurrentTitle] = useState(note?.title || "");
-  const [dirty, setDirty] = useState(false);
   const [saving, setSaving] = useState(false);
   // Editor is considered ready once programmatic setContent is done
   const [editorReady, setEditorReady] = useState(false);
+  // Flag to prevent setting dirty during programmatic content changes
+  const isProgrammaticChange = useRef(false);
 
   const handleEditorUpdate = useCallback(() => {
-    setDirty(true);
-  }, []);
+    if (isProgrammaticChange.current) return;
+    onDirtyChange(true);
+  }, [onDirtyChange]);
 
   const editor = useEditor({
-    // Do not set a default content here. The editor will be populated
-    // from the fetched note in an effect below. This avoids creating an
-    // initial undo entry that contains placeholder text.
     immediatelyRender: false,
     extensions: [
       StarterKit.configure({
         heading: false,
-        // Disable default history from StarterKit
-        history: false,
+        history: false, // Disable default history
       }),
-      // Add History extension explicitly for better control
-      History.configure({
-        depth: 100,
-      }),
+      History.configure({ depth: 100 }), // Add History extension explicitly
       Heading.configure({ levels: [1, 2, 3] }),
       TaskList,
       TaskItem,
@@ -77,9 +74,7 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
         placeholder: "Start typing...",
         emptyEditorClass: "is-editor-empty text-muted-foreground",
       }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       Highlight.configure({ multicolor: true }),
       Underline,
       Subscript,
@@ -93,50 +88,52 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
     onUpdate: handleEditorUpdate,
   });
 
-  // Update local state when note data changes
+  // Update local state and reset dirty status when note data changes
   useEffect(() => {
-    if (note) {
+    if (note && editor) {
       setCurrentTitle(note.title);
-      setDirty(false);
+      onDirtyChange(false);
       setEditorReady(false);
-      if (editor) {
-        // Programmatically set the editor content from the loaded note.
-        // Create a transaction that sets content and clears history atomically
-        const { state, view } = editor;
-        const tr = state.tr;
-        tr.setMeta("addToHistory", false); // Don't add this to history
-        tr.replaceWith(
-          0,
-          state.doc.content.size,
-          note.content.content
-            ? state.schema.nodeFromJSON(note.content)
-            : state.schema.node("doc")
-        );
-        view.dispatch(tr);
 
-        // Clear history storage after the transaction
-        if (editor.storage.history) {
-          editor.storage.history.done = [];
-          editor.storage.history.undone = [];
-        }
-        // Now mark editor ready so the parent can render it without flicker
-        setEditorReady(true);
+      isProgrammaticChange.current = true;
+      const { state, view } = editor;
+      const tr = state.tr.replaceWith(
+        0,
+        state.doc.content.size,
+        note.content?.content
+          ? state.schema.nodeFromJSON(note.content)
+          : state.schema.node("doc")
+      );
+      tr.setMeta("addToHistory", false);
+      view.dispatch(tr);
+
+      if (editor.storage.history) {
+        editor.storage.history.done = [];
+        editor.storage.history.undone = [];
       }
+      setEditorReady(true);
+      // Reset the flag after a short delay to ensure no onUpdate fires
+      setTimeout(() => {
+        isProgrammaticChange.current = false;
+      }, 0);
     }
-  }, [note, editor]);
+  }, [note, editor, onDirtyChange]);
 
   // Save to API
   const saveToAPI = useCallback(
     async (data: { title?: string; content?: any }) => {
-      // Validate title
+      if (!editor) return;
+
       const titleToSave = data.title?.trim();
       if (!titleToSave) {
         toast.error("Please enter a title for your note");
         return;
       }
 
-      const contentToSave = data.content || editor?.getJSON();
+      const contentToSave = data.content || editor.getJSON();
       setSaving(true);
+      editor.setEditable(false);
+
       try {
         await toast.promise(
           updateNoteMutation.mutateAsync({
@@ -149,44 +146,43 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
             error: "Failed to save note.",
           }
         );
-        const updates: Partial<Note> = {
+
+        onNoteUpdate(noteId, {
+          title: titleToSave,
           updated_at: new Date().toISOString(),
-        };
-        if (titleToSave !== undefined) updates.title = titleToSave;
-        onNoteUpdate(noteId, updates);
-        setDirty(false);
-        // Reset editor history after successful save
-        if (editor && editor.storage.history) {
+        });
+
+        onDirtyChange(false);
+
+        // To ensure the undo/redo buttons update, manually clear the history stacks
+        // and then dispatch an empty transaction to force a state update.
+        if (editor.storage.history) {
           editor.storage.history.done = [];
           editor.storage.history.undone = [];
         }
+        // This forces the editor to re-evaluate its state, including `can().undo()`
+        editor.view.dispatch(editor.state.tr);
       } catch (err) {
-        //
+        // Error is handled by toast.promise
       } finally {
         setSaving(false);
+        editor.setEditable(true);
       }
     },
-    [noteId, onNoteUpdate, updateNoteMutation, editor]
+    [noteId, onNoteUpdate, updateNoteMutation, editor, onDirtyChange]
   );
-
-  // Register dirty state with parent
-  useEffect(() => {
-    if (typeof registerDirtyRef === "function") registerDirtyRef(dirty);
-  }, [dirty, registerDirtyRef]);
 
   // Register save function with parent
   useEffect(() => {
     if (typeof registerSaveFn === "function") {
-      registerSaveFn(async () => {
-        await saveToAPI({ title: currentTitle });
-      });
+      registerSaveFn(() => saveToAPI({ title: currentTitle }));
     }
   }, [registerSaveFn, saveToAPI, currentTitle]);
 
-  // Handler for title changes. Updates local state and marks as dirty.
+  // Handler for title changes.
   const onTitleChange = (newTitle: string) => {
     setCurrentTitle(newTitle);
-    setDirty(true);
+    onDirtyChange(true);
   };
 
   // Manual save handler
@@ -197,27 +193,27 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
   // Prevent closing window with unsaved changes
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (dirty) {
+      if (isDirty) {
         e.preventDefault();
         e.returnValue = "";
       }
     };
 
-    if (dirty) {
+    if (isDirty) {
       window.addEventListener("beforeunload", handleBeforeUnload);
     } else {
       window.removeEventListener("beforeunload", handleBeforeUnload);
     }
 
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [dirty]);
+  }, [isDirty]);
 
   // Keyboard shortcut for save (Ctrl+S / Cmd+S)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "s") {
         e.preventDefault();
-        if (dirty && !saving) {
+        if (isDirty && !saving) {
           handleManualSave();
         }
       }
@@ -225,7 +221,7 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [dirty, saving, handleManualSave]);
+  }, [isDirty, saving, handleManualSave]);
 
   if (isLoading || !editorReady) {
     return (
@@ -255,7 +251,7 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
       <Toolbar
         editor={editor}
         onSave={handleManualSave}
-        disabled={!editor?.can().undo() || saving || !dirty}
+        disabled={!isDirty || saving}
         saving={saving}
       />
       <ScrollArea

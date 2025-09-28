@@ -105,6 +105,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@workspace/ui/components/tooltip";
 import { cn } from "@workspace/ui/lib/utils";
 import { toast } from "sonner";
 import Confetti from "react-confetti";
@@ -128,7 +133,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 // Utility functions
 function generateRandomPassword(): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
   let password = "";
   for (let i = 0; i < 12; i++) {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
@@ -390,15 +396,15 @@ export default function NotesDashboard() {
         role: inviteRole,
         password: invitePassword || undefined,
       });
-      
+
       toast.success(`User ${inviteEmail} invited successfully!`);
-      
+
       // Copy password to clipboard if it was generated or provided
       if (result.password) {
         copyToClipboard(result.password);
         toast.success("Password copied to clipboard!");
       }
-      
+
       setShowInviteForm(false);
       setInviteEmail("");
       setInviteRole("member");
@@ -420,16 +426,15 @@ export default function NotesDashboard() {
     if (upgradingRef.current) return;
     upgradingRef.current = true;
     try {
-      await toast.promise(
-        upgradeTenantMutation.mutateAsync(tenant.slug),
-        {
-          loading: "Upgrading to Pro...",
-          success: "Upgraded to Pro successfully!",
-          error: "Upgrade failed to process.",
-        }
-      );
+      await toast.promise(upgradeTenantMutation.mutateAsync(tenant.slug), {
+        loading: "Upgrading to Pro...",
+        success: "Upgraded to Pro successfully!",
+        error: "Upgrade failed to process.",
+      });
       // Update user state to reflect pro plan
-      setUser(prevUser => prevUser ? { ...prevUser, tenantPlan: "pro" } : null);
+      setUser(prevUser =>
+        prevUser ? { ...prevUser, tenantPlan: "pro" } : null
+      );
       // Invalidate tenant query to get updated data
       queryClient.invalidateQueries({ queryKey: ["tenant"] });
 
@@ -624,7 +629,16 @@ export default function NotesDashboard() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="invitePassword">Password (Optional)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="invitePassword">Password (Optional)</Label>
+                  <button
+                    type="button"
+                    className="text-primary h-auto cursor-pointer p-0 text-sm font-bold"
+                    onClick={() => setInvitePassword(generateRandomPassword())}
+                  >
+                    Generate
+                  </button>
+                </div>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <Input
@@ -634,46 +648,48 @@ export default function NotesDashboard() {
                       value={invitePassword}
                       onChange={e => setInvitePassword(e.target.value)}
                     />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-4 w-4" />
-                      ) : (
-                        <Eye className="h-4 w-4" />
-                      )}
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        Toggle password visibility
+                      </TooltipContent>
+                    </Tooltip>
                   </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setInvitePassword(generateRandomPassword())}
-                    title="Generate random password"
-                  >
-                    <Shuffle className="h-4 w-4" />
-                  </Button>
-                  {invitePassword && (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        copyToClipboard(invitePassword);
-                        toast.success("Password copied to clipboard!");
-                      }}
-                      title="Copy password"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  )}
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={!invitePassword}
+                        onClick={() => {
+                          copyToClipboard(invitePassword);
+                          toast.success("Password copied to clipboard!");
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Copy password</TooltipContent>
+                  </Tooltip>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  If no password is provided, a secure random password will be generated and copied to your clipboard.
+                <p className="text-muted-foreground text-xs">
+                  If no password is provided, a secure random password will be
+                  generated and copied to your clipboard.
                 </p>
               </div>
               <div className="flex justify-end space-x-2">
@@ -694,7 +710,7 @@ export default function NotesDashboard() {
                 <Button type="submit" disabled={inviteUserMutation.isPending}>
                   {inviteUserMutation.isPending ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4 w-4 animate-spin" />
                       Inviting...
                     </>
                   ) : (

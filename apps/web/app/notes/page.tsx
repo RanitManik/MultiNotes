@@ -796,7 +796,23 @@ export default function NotesDashboard() {
           </Topbar>
           <Separator />
           <div className="min-w-0 flex-1">
-            {selectedId ? (
+            {notesLoading ? (
+              <div className="flex h-full flex-col">
+                <div className="flex items-center gap-2 px-4 pb-2 pt-4">
+                  <Skeleton className="h-10 flex-1" />
+                  <Skeleton className="h-8 w-16" />
+                </div>
+                <div className="flex-1 space-y-4 px-4">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-5/6" />
+                  <Skeleton className="h-4 w-4/5" />
+                  <Skeleton className="h-6 w-2/3" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
+              </div>
+            ) : selectedId ? (
               <NoteEditorContainer
                 noteId={selectedId}
                 onNoteUpdate={updateNoteInList}
@@ -1162,30 +1178,32 @@ function Topbar({
 
       {/* Tenant info */}
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-2">
-          <span className="truncate text-pretty text-sm font-medium">
-            {tenant?.slug}
-          </span>
-          <Badge
-            variant="secondary"
-            className="px-1.5 py-0.5 text-xs font-medium"
-          >
-            {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
-          </Badge>
-        </div>
+        {tenantLoading ? (
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-24" />
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="truncate text-pretty text-sm font-medium">
+              {tenant?.slug}
+            </span>
+            <Badge
+              variant="secondary"
+              className="px-1.5 py-0.5 text-xs font-medium"
+            >
+              {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
+            </Badge>
+          </div>
+        )}
       </div>
 
       {/* Actions */}
       <div className="flex items-center gap-2">
-        {tenantLoading ? (
-          <Skeleton className="h-8 w-24" />
-        ) : (
-          canUpgrade && (
-            <Button size="sm" onClick={onUpgrade} variant="secondary">
-              <Sparkles className="mr-1.5 size-4" />
-              Upgrade
-            </Button>
-          )
+        {!tenantLoading && canUpgrade && (
+          <Button size="sm" onClick={onUpgrade} variant="secondary">
+            <Sparkles className="mr-1.5 size-4" />
+            Upgrade
+          </Button>
         )}
       </div>
     </header>
@@ -1385,7 +1403,10 @@ function NoteEditorContainer({
         disabled={!dirty}
         saving={saving}
       />
-      <ScrollArea className="h-[calc(100vh-120px)] md:h-[calc(100vh-60px)]">
+      <ScrollArea
+        type="always"
+        className="h-[calc(100vh-120px)] md:h-[calc(100vh-60px)]"
+      >
         <div className="mx-auto mt-6 w-full max-w-4xl px-4 md:px-6">
           <input
             className="text-foreground w-full resize-none border-none bg-transparent text-4xl font-bold focus:outline-none"

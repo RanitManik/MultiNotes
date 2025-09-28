@@ -913,6 +913,7 @@ function NotesDashboardContent() {
             ) : selectedId ? (
               <>
                 <NoteEditorContainer
+                  key={selectedId}
                   noteId={selectedId}
                   onNoteUpdate={updateNoteInList}
                   // Provide refs so the child can register dirty state and save

@@ -155,6 +155,11 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
         if (titleToSave !== undefined) updates.title = titleToSave;
         onNoteUpdate(noteId, updates);
         setDirty(false);
+        // Reset editor history after successful save
+        if (editor && editor.storage.history) {
+          editor.storage.history.done = [];
+          editor.storage.history.undone = [];
+        }
       } catch (err) {
         //
       } finally {
@@ -250,7 +255,7 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
       <Toolbar
         editor={editor}
         onSave={handleManualSave}
-        disabled={!dirty}
+        disabled={!editor?.can().undo() || saving || !dirty}
         saving={saving}
       />
       <ScrollArea

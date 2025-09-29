@@ -78,7 +78,7 @@ export default function LoginPage() {
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="animate-fade-up animate-duration-250 w-full max-w-md">
         <LoginForm
           email={email}
           password={password}
@@ -88,6 +88,7 @@ export default function LoginPage() {
           loading={loading}
           error={error}
           onSignUp={() => router.push("/auth/register")}
+          onForgotPassword={() => router.push("/auth/forgot-password")}
         />
       </div>
     </div>

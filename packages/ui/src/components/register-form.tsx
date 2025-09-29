@@ -2,6 +2,8 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { AlertTriangle } from "lucide-react";
 
 export function RegisterForm({
   className,
@@ -34,13 +36,11 @@ export function RegisterForm({
       {...props}
     >
       <div className="flex flex-col items-center gap-2 text-center">
-        <div className="mb-4">
-          <img
-            src="/logo.svg"
-            alt="MultiNotes Logo"
-            className="mx-auto h-16 w-16"
-          />
-        </div>
+        <img
+          src="/logo.svg"
+          alt="MultiNotes Logo"
+          className="mx-auto h-16 w-16"
+        />
         <h1 className="text-2xl font-bold">Create your account</h1>
         <p className="text-muted-foreground text-balance text-sm">
           Enter your details below to create your account
@@ -84,7 +84,12 @@ export function RegisterForm({
             minLength={8}
           />
         </div>
-        {error && <div className="text-sm text-red-500">{error}</div>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Creating account..." : "Create Account"}
         </Button>
@@ -108,7 +113,7 @@ export function RegisterForm({
         <button
           type="button"
           onClick={onSignIn}
-          className="underline underline-offset-4 hover:underline"
+          className="cursor-pointer underline underline-offset-4 hover:underline"
         >
           Sign in
         </button>

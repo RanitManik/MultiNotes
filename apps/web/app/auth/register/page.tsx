@@ -83,7 +83,7 @@ export default function RegisterPage() {
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md">
+      <div className="animate-fade-up animate-duration-250 w-full max-w-md">
         <RegisterForm
           email={registerEmail}
           password={registerPassword}

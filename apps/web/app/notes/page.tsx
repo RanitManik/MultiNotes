@@ -825,7 +825,7 @@ function NotesDashboardContent() {
 
       {/* Error Alert */}
       {error && (
-        <Alert className="mb-6" variant="destructive">
+        <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>

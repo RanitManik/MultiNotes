@@ -2,6 +2,8 @@ import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { AlertTriangle } from "lucide-react";
 
 export function LoginForm({
   className,
@@ -13,6 +15,7 @@ export function LoginForm({
   loading = false,
   error,
   onSignUp,
+  onForgotPassword,
   ...props
 }: React.ComponentProps<"form"> & {
   email?: string;
@@ -22,6 +25,7 @@ export function LoginForm({
   loading?: boolean;
   error?: string;
   onSignUp?: () => void;
+  onForgotPassword?: () => void;
 }) {
   return (
     <form
@@ -30,13 +34,11 @@ export function LoginForm({
       {...props}
     >
       <div className="flex flex-col items-center gap-2 text-center">
-        <div className="mb-4">
-          <img
-            src="/logo.svg"
-            alt="MultiNotes Logo"
-            className="mx-auto h-16 w-16"
-          />
-        </div>
+        <img
+          src="/logo.svg"
+          alt="MultiNotes Logo"
+          className="mx-auto h-16 w-16"
+        />
         <h1 className="text-2xl font-bold">Login to your account</h1>
         <p className="text-muted-foreground text-balance text-sm">
           Enter your email below to login to your account
@@ -58,12 +60,13 @@ export function LoginForm({
         <div className="grid gap-3">
           <div className="flex items-center">
             <Label htmlFor="password">Password</Label>
-            <a
-              href="#"
-              className="ml-auto text-sm underline-offset-4 hover:underline"
+            <button
+              type="button"
+              onClick={onForgotPassword}
+              className="ml-auto cursor-pointer text-sm underline-offset-4 hover:underline"
             >
               Forgot your password?
-            </a>
+            </button>
           </div>
           <Input
             id="password"
@@ -74,7 +77,12 @@ export function LoginForm({
             disabled={loading}
           />
         </div>
-        {error && <div className="text-sm text-red-500">{error}</div>}
+        {error && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? "Logging in..." : "Login"}
         </Button>
@@ -98,7 +106,7 @@ export function LoginForm({
         <button
           type="button"
           onClick={onSignUp}
-          className="underline underline-offset-4 hover:underline"
+          className="cursor-pointer underline underline-offset-4 hover:underline"
         >
           Sign up
         </button>

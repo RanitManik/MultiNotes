@@ -61,6 +61,11 @@ jobs:
           name: workspace
           path: .
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
       - name: Run audit
         run: pnpm audit --audit-level=moderate
 
@@ -75,6 +80,11 @@ jobs:
         with:
           name: workspace
           path: .
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
 
       - name: Run linting
         run: pnpm lint
@@ -91,5 +101,50 @@ jobs:
           name: workspace
           path: .
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
       - name: Run unit tests
         run: pnpm test
+
+  # Build projects
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Download workspace artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+          path: .
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Run build
+        run: pnpm build
+
+  # Type check projects
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Download workspace artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: workspace
+          path: .
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.4.1
+
+      - name: Run typecheck
+        run: pnpm typecheck

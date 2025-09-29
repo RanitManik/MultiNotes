@@ -1,0 +1,31 @@
+{
+  "recommendations": [
+    "nrwl.angular-console",
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+    "firsttris.vscode-jest-runner",
+    "bradlc.vscode-tailwindcss",
+    "formulahendry.auto-rename-tag",
+    "christian-kohler.path-intellisense",
+    "ms-vscode.vscode-typescript-next",
+    "ms-vscode.vscode-json",
+    "ms-vscode.vscode-markdown",
+    "ms-playwright.playwright",
+    "vitest.explorer",
+    "ms-vscode.test-adapter-converter",
+    "github.vscode-github-actions",
+    "ms-vscode.vscode-github-issue-notebooks",
+    "github.copilot",
+    "github.copilot-chat",
+    "github.vscode-pull-request-github",
+    "ms-vscode.remote-repositories",
+    "yoavbls.pretty-ts-errors",
+    "streetsidesoftware.code-spell-checker",
+    "usernamehw.errorlens",
+    "ms-vscode.hexeditor",
+    "ms-vscode.live-server",
+    "ms-vscode.vscode-npm",
+    "ms-vscode.references-view",
+    "redhat.vscode-yaml"
+  ]
+}

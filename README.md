@@ -1,8 +1,12 @@
 # MultiNotes
 
-A multi-tenant SaaS notes application with role-based access control and subscription management.
+> [!NOTE]
+> This repository is a personal learning project and proof-of-concept. It is not production-ready, not intended to be used to earn money, and should not be relied upon for real-world production systems. Use it for learning, experimentation, and reference only.
 
-## Table of Contents
+A multi-tenant notes application with role-based access control and subscription management.
+
+<details>
+<summary>Table of Contents</summary>
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
@@ -15,7 +19,10 @@ A multi-tenant SaaS notes application with role-based access control and subscri
 - [Architecture](#architecture)
 - [Security](#security)
 - [Development](#development)
+- [Development Tools](#development-tools)
 - [License](#license)
+
+</details>
 
 ## Features
 
@@ -91,7 +98,49 @@ pnpm test             # Run all tests
 pnpm db:migrate       # Run migrations
 pnpm db:seed          # Seed database
 pnpm db:generate      # Generate Prisma client
+
+# Git Hooks & Commits
+pnpm commit           # Interactive commit with conventional format
 ```
+
+## Development Tools
+
+This project uses several development tools to maintain code quality:
+
+- **EditorConfig**: Maintains consistent coding styles across editors
+- **Husky**: Git hooks for pre-commit and commit-msg validation
+- **lint-staged**: Run linters only on staged files
+- **Commitlint**: Enforce conventional commit messages
+- **Commitizen**: Interactive commit message prompts
+- **Prettier**: Code formatting
+- **ESLint**: Code linting
+
+### Pre-commit Hooks
+
+The following checks run automatically on `git commit`:
+
+- **lint-staged**: Formats and lints staged files
+- **commitlint**: Validates commit message format
+
+### Conventional Commits
+
+This project follows [Conventional Commits](https://conventionalcommits.org/) specification. Use:
+
+```bash
+pnpm commit
+```
+
+For interactive commit creation, or manually format as:
+
+```text
+type(scope): description
+
+[optional body]
+
+[optional footer]
+```
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `build`, `perf`, `revert`
 
 ## Test Accounts
 

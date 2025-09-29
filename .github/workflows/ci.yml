@@ -1,0 +1,156 @@
+# ci.yml
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Job to setup the environment, install dependencies
+  setup:
+    name: Setup & Pre-checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+  # Dependency audit for vulnerable packages
+  audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Run audit
+        run: pnpm audit --audit-level=moderate
+
+  # Lint affected projects
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Run linting on affected projects
+        run: pnpm lint
+
+  # Run unit tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Run unit tests
+        run: pnpm test
+
+  # Type check affected projects
+  typecheck:
+    name: Type Check
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Build affected dependencies for type checking
+        run: pnpm build
+      - name: Run type checking on affected projects
+        run: pnpm typecheck
+
+  # Build affected applications and libraries
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [setup, lint, unit-tests, typecheck]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+      - name: Build affected projects
+        run: pnpm build
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts
+          path: |
+            dist/
+            apps/*/dist/
+            packages/*/dist/
+
+  # Final status check to provide a clear pass/fail/skipped signal
+  ci-status-check:
+    name: CI Status Check
+    runs-on: ubuntu-latest
+    needs: [setup, lint, unit-tests, typecheck, build]
+    if: always() # This job must always run to provide a clear conclusion
+    steps:
+      - name: Evaluate CI outcome
+        run: |
+          # Checks ran and all required jobs succeeded.
+          # The 'build' job is the final step, so its success implies all its dependencies succeeded.
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
+            echo "All CI checks passed!"
+            exit 0
+          else
+            echo "One or more CI checks failed."
+            exit 1
+          fi

@@ -1,12 +1,18 @@
 import { useEffect } from "react";
 
+declare global {
+  interface Window {
+    whomadethis?: () => void;
+  }
+}
+
 // --- Hidden Easter Egg Component ---
 export function EasterEgg() {
   useEffect(() => {
     // Shh, it's a secret. If you're reading this, you're either very curious
     // or you're me. Either way, hi! This little trick keeps the strings
     // out of the casual source code search.
-    (window as any).whomadethis = () => {
+    window.whomadethis = () => {
       // Helper to decode Base64 on the fly.
       const d = (s: string) => atob(s);
 
@@ -48,7 +54,7 @@ export function EasterEgg() {
 
     // Cleanup the function when the component unmounts.
     return () => {
-      delete (window as any).whomadethis;
+      delete window.whomadethis;
     };
   }, []);
 

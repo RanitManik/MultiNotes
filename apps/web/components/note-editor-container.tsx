@@ -149,10 +149,13 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
               });
               onDirtyChange(false);
               setSaving(false);
+              editor.setEditable(true);
+              editor.commands.focus();
               return "Note saved!";
             },
             error: () => {
               setSaving(false);
+              editor.setEditable(true);
               return "Failed to save note.";
             },
           }
@@ -168,8 +171,6 @@ export const NoteEditorContainer = React.memo(function NoteEditorContainer({
         editor.view.dispatch(editor.state.tr);
       } catch (err) {
         // Error is handled by toast.promise
-      } finally {
-        editor.setEditable(true);
       }
     },
     [noteId, onNoteUpdate, updateNoteMutation, editor, onDirtyChange]

@@ -1,42 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@workspace/ui/components/login-form";
-import { Loader2 } from "lucide-react";
+import { signIn } from "next-auth/react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [oauthLoading, setOauthLoading] = useState<"github" | "google" | null>(
+    null
+  );
   const router = useRouter();
-
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("auth:token");
-    if (token) {
-      // Verify token is valid by decoding it locally
-      try {
-        const parts = token.split(".");
-        if (parts.length === 3 && parts[1]) {
-          const payload = JSON.parse(atob(parts[1]));
-          // Check if token is not expired
-          const currentTime = Math.floor(Date.now() / 1000);
-          if (payload.exp && payload.exp > currentTime) {
-            router.push("/notes");
-            return;
-          }
-        }
-      } catch {
-        // Token is invalid
-      }
-      // Remove invalid token
-      localStorage.removeItem("auth:token");
-    }
-    setCheckingAuth(false);
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,8 +30,12 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("auth:token", data.token);
-        router.push("/notes");
+        if (data.redirect) {
+          router.push(data.redirect);
+        } else {
+          localStorage.setItem("auth:token", data.token);
+          router.push("/notes");
+        }
       } else {
         setError(data.error || "Login failed");
       }
@@ -64,17 +45,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
-
-  if (checkingAuth) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
@@ -86,9 +56,28 @@ export default function LoginPage() {
           onPasswordChange={setPassword}
           onSubmit={handleSubmit}
           loading={loading}
+          oauthLoading={oauthLoading}
           error={error}
           onSignUp={() => router.push("/auth/register")}
           onForgotPassword={() => router.push("/auth/forgot-password")}
+          onGitHubSignIn={async () => {
+            setOauthLoading("github");
+            try {
+              await signIn("github", { callbackUrl: "/auth/complete" });
+            } catch (error) {
+              setOauthLoading(null);
+              setError("GitHub sign-in failed");
+            }
+          }}
+          onGoogleSignIn={async () => {
+            setOauthLoading("google");
+            try {
+              await signIn("google", { callbackUrl: "/auth/complete" });
+            } catch (error) {
+              setOauthLoading(null);
+              setError("Google sign-in failed");
+            }
+          }}
         />
       </div>
     </div>

@@ -1,43 +1,22 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RegisterForm } from "@workspace/ui/components/register-form";
-import { Loader2 } from "lucide-react";
+import { signIn } from "next-auth/react";
 
 export default function RegisterPage() {
   const [registerEmail, setRegisterEmail] = useState("");
   const [registerPassword, setRegisterPassword] = useState("");
-  const [tenantName, setTenantName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [oauthLoading, setOauthLoading] = useState<"github" | "google" | null>(
+    null
+  );
   const router = useRouter();
-
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("auth:token");
-    if (token) {
-      // Verify token is valid by decoding it locally
-      try {
-        const parts = token.split(".");
-        if (parts.length === 3 && parts[1]) {
-          const payload = JSON.parse(atob(parts[1]));
-          // Check if token is not expired
-          const currentTime = Math.floor(Date.now() / 1000);
-          if (payload.exp && payload.exp > currentTime) {
-            router.push("/notes");
-            return;
-          }
-        }
-      } catch {
-        // Token is invalid
-      }
-      // Remove invalid token
-      localStorage.removeItem("auth:token");
-    }
-    setCheckingAuth(false);
-  }, [router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,17 +30,22 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: registerEmail,
           password: registerPassword,
-          tenantName,
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem("auth:token", data.token);
-        router.push("/notes");
+        setSuccess(
+          data.message ||
+            "Registration successful! Please check your email to verify your account."
+        );
+        setError("");
       } else {
         setError(data.error || "Registration failed");
+        setSuccess("");
       }
     } catch {
       setError("Network error");
@@ -70,31 +54,42 @@ export default function RegisterPage() {
     }
   };
 
-  if (checkingAuth) {
-    return (
-      <div className="bg-background flex min-h-screen items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-background flex min-h-screen items-center justify-center p-4">
       <div className="animate-fade-up animate-duration-250 w-full max-w-md">
         <RegisterForm
           email={registerEmail}
           password={registerPassword}
-          tenantName={tenantName}
+          firstName={firstName}
+          lastName={lastName}
           onEmailChange={setRegisterEmail}
           onPasswordChange={setRegisterPassword}
-          onTenantNameChange={setTenantName}
+          onFirstNameChange={setFirstName}
+          onLastNameChange={setLastName}
           onSubmit={handleRegister}
           loading={loading}
+          oauthLoading={oauthLoading}
           error={error}
+          success={success}
           onSignIn={() => router.push("/auth/login")}
+          onGitHubSignIn={async () => {
+            setOauthLoading("github");
+            try {
+              await signIn("github", { callbackUrl: "/auth/complete" });
+            } catch (error) {
+              setOauthLoading(null);
+              setError("GitHub sign-up failed");
+            }
+          }}
+          onGoogleSignIn={async () => {
+            setOauthLoading("google");
+            try {
+              await signIn("google", { callbackUrl: "/auth/complete" });
+            } catch (error) {
+              setOauthLoading(null);
+              setError("Google sign-up failed");
+            }
+          }}
         />
       </div>
     </div>

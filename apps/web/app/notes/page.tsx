@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
@@ -111,8 +112,11 @@ function NotesDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // User state
-  const [user, setUser] = useState<UserType | null>(null);
+  // NextAuth session
+  const { data: session, status } = useSession();
+
+  // User state - derived from session
+  const user = session?.user as UserType | null;
 
   // TanStack Query hooks
   const {
@@ -185,36 +189,13 @@ function NotesDashboardContent() {
     hide: null,
   });
 
-  // Token validation and user setup effect
+  // Redirect if not authenticated
   useEffect(() => {
-    const token = localStorage.getItem("auth:token");
-    if (!token) {
+    if (status === "loading") return; // Still loading
+    if (!session) {
       router.push("/auth/login");
-      return;
     }
-
-    try {
-      const parts = token.split(".");
-      if (parts.length !== 3 || !parts[1]) throw new Error("Invalid token");
-      const payload = JSON.parse(atob(parts[1]));
-
-      // Check if token is expired
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (payload.exp && payload.exp <= currentTime) {
-        throw new Error("Token expired");
-      }
-
-      setUser({
-        role: payload.role,
-        tenantSlug: payload.tenantSlug,
-        tenantPlan: payload.tenantPlan,
-      });
-    } catch {
-      localStorage.removeItem("auth:token");
-      router.push("/auth/login");
-      return;
-    }
-  }, [router]);
+  }, [session, status, router]);
 
   // Automatically select note based on search params or first note
   useEffect(() => {
@@ -495,12 +476,16 @@ function NotesDashboardContent() {
     ]
   );
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("auth:token");
+  const handleLogout = useCallback(async () => {
     // Clear all cached data to prevent showing previous user's data
     queryClient.clear();
-    router.push("/auth/login");
-  }, [queryClient, router]);
+    // Sign out from NextAuth
+    await toast.promise(signOut({ callbackUrl: "/auth/login" }), {
+      loading: "Signing out...",
+      success: "Signed out successfully",
+      error: "Failed to sign out",
+    });
+  }, [queryClient]);
 
   // Handler for the upgrade process.
   const upgradingRef = useRef(false);
@@ -513,10 +498,7 @@ function NotesDashboardContent() {
         success: "Upgraded to Pro successfully!",
         error: "Upgrade failed to process.",
       });
-      // Update user state to reflect pro plan
-      setUser(prevUser =>
-        prevUser ? { ...prevUser, tenantPlan: "pro" } : null
-      );
+      // Note: Session should be updated to reflect pro plan, or page may need refresh
 
       // 🎊 Show confetti and fade it out smoothly before hiding.
       const DURATION = 6000; // total confetti duration
@@ -546,7 +528,6 @@ function NotesDashboardContent() {
   }, [
     upgradeTenantMutation,
     tenant.slug,
-    setUser,
     setConfettiFading,
     setShowConfetti,
     confettiTimers,
@@ -896,7 +877,7 @@ function NotesDashboardContent() {
           </Topbar>
           <Separator />
           <div className="min-w-0 flex-1">
-            {notesLoading || tenantLoading ? (
+            {notesLoading || tenantLoading || status === "loading" ? (
               <div className="flex h-full flex-col">
                 <div className="flex items-center gap-2 px-4 pb-2 pt-4">
                   <Skeleton className="h-10 flex-1" />

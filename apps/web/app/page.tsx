@@ -16,31 +16,6 @@ export default function LandingPage() {
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
 
-  useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("auth:token");
-    if (token) {
-      // Verify token is valid by decoding it locally
-      try {
-        const parts = token.split(".");
-        if (parts.length === 3 && parts[1]) {
-          const payload = JSON.parse(atob(parts[1]));
-          // Check if token is not expired
-          const currentTime = Math.floor(Date.now() / 1000);
-          if (payload.exp && payload.exp > currentTime) {
-            router.push("/notes");
-            return;
-          }
-        }
-      } catch {
-        // Token is invalid
-      }
-      // Remove invalid token
-      localStorage.removeItem("auth:token");
-    }
-    setCheckingAuth(false);
-  }, [router]);
-
   if (checkingAuth) {
     return (
       <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br">

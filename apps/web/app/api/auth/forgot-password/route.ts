@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { sendPasswordResetEmail } from "@/lib/email";
+import { randomBytes } from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,10 +17,22 @@ export async function POST(request: NextRequest) {
     });
 
     // Always return success for security reasons (don't reveal if email exists)
-    // In a real application, you would send an email with a reset token here
     if (user) {
-      // TODO: Generate reset token and send email
-      console.log(`Password reset requested for: ${email}`);
+      // Generate reset token
+      const token = randomBytes(32).toString("hex");
+      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+      // Save reset token
+      await prisma.verificationToken.create({
+        data: {
+          identifier: `reset-${email}`,
+          token,
+          expires,
+        },
+      });
+
+      // Send password reset email
+      await sendPasswordResetEmail(email, token);
     }
 
     return NextResponse.json({

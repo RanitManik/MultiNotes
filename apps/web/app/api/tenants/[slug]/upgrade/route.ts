@@ -58,9 +58,9 @@ export async function POST(
       id: updatedUser.id,
       email: updatedUser.email,
       role: updatedUser.role,
-      tenantId: updatedUser.tenant_id,
-      tenantSlug: updatedUser.tenant.slug,
-      tenantPlan: updatedUser.tenant.plan,
+      tenantId: updatedUser.tenant_id || "",
+      tenantSlug: updatedUser.tenant?.slug || "",
+      tenantPlan: updatedUser.tenant?.plan || "free",
     });
 
     return NextResponse.json({

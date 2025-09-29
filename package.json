@@ -13,7 +13,7 @@
     "test:watch": "turbo test:watch",
     "db:generate": "turbo db:generate",
     "db:migrate": "turbo db:migrate",
-    "db:migrate:prod": "turbo db:migrate:prod",
+    "db:push": "turbo db:migrate:prod",
     "db:seed": "turbo db:seed",
     "db:setup": "turbo db:setup",
     "typecheck": "turbo typecheck",

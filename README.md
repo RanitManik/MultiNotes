@@ -83,11 +83,33 @@ pnpm install
 
 1. **Configure environment variables:**
 
-Create a `.env.local` file in the `apps/web/` directory:
+Copy the example environment file and update the values:
+
+```bash
+cd apps/web
+cp .env.example .env
+```
+
+Then edit `.env` with your actual values:
 
 ```env
-DATABASE_URL="postgresql://username:password@localhost:5432/multinotes"
-JWT_SECRET="your-super-secret-jwt-key-minimum-32-characters"
+# Database
+DATABASE_URL="postgresql://username:password@host:port/database"
+DIRECT_URL="postgresql://username:password@host:port/database"
+
+# Authentication
+JWT_SECRET="your-jwt-secret-here"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="your-nextauth-secret-here"
+
+# GitHub OAuth
+GITHUB_CLIENT_ID="your-github-client-id"
+GITHUB_CLIENT_SECRET="your-github-client-secret"
+
+# Email (Brevo)
+BREVO_API_KEY="your-brevo-api-key-here"
+BREVO_FROM_EMAIL="noreply@yourdomain.com"
+BREVO_FROM_NAME="MultiNotes"
 ```
 
 2. **Run database migrations:**
@@ -133,10 +155,18 @@ Use these credentials to explore the application (password: `password` for all):
 
 ### Environment Variables
 
-| Variable       | Description                               | Required |
-| -------------- | ----------------------------------------- | -------- |
-| `DATABASE_URL` | PostgreSQL connection string              | ✅ Yes   |
-| `JWT_SECRET`   | Secret key for JWT signing (min 32 chars) | ✅ Yes   |
+| Variable               | Description                               | Required |
+| ---------------------- | ----------------------------------------- | -------- |
+| `DATABASE_URL`         | PostgreSQL connection string (pooled)     | ✅ Yes   |
+| `DIRECT_URL`           | Direct PostgreSQL connection (migrations) | ✅ Yes   |
+| `JWT_SECRET`           | Secret key for JWT signing (min 32 chars) | ✅ Yes   |
+| `NEXTAUTH_URL`         | Base URL for NextAuth                     | ✅ Yes   |
+| `NEXTAUTH_SECRET`      | Secret for NextAuth session encryption    | ✅ Yes   |
+| `GITHUB_CLIENT_ID`     | GitHub OAuth client ID                    | ✅ Yes   |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret                | ✅ Yes   |
+| `BREVO_API_KEY`        | Brevo email API key                       | ✅ Yes   |
+| `BREVO_FROM_EMAIL`     | Verified sender email for Brevo           | ✅ Yes   |
+| `BREVO_FROM_NAME`      | Sender name for emails                    | ❌ No    |
 
 ### Available Scripts
 

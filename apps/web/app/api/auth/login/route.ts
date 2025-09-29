@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       include: { tenant: true },
     });
 
-    if (!user) {
+    if (!user || !user.password_hash) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
@@ -34,13 +34,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user has a tenant
+    if (!user.tenant_id) {
+      return NextResponse.json(
+        {
+          error: "Please complete organization setup",
+          redirect: "/organization/setup",
+        },
+        { status: 200 }
+      );
+    }
+
     const token = createToken({
       id: user.id,
       email: user.email,
       role: user.role,
-      tenantId: user.tenant_id,
-      tenantSlug: user.tenant.slug,
-      tenantPlan: user.tenant.plan,
+      tenantId: user.tenant_id || "",
+      tenantSlug: user.tenant?.slug || "",
+      tenantPlan: user.tenant?.plan || "free",
     });
 
     return NextResponse.json({ token });

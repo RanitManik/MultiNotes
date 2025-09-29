@@ -148,3 +148,12 @@ jobs:
 
       - name: Run typecheck
         run: pnpm typecheck
+
+  # Final status check to ensure all jobs pass
+  ci-status:
+    name: CI Status
+    runs-on: ubuntu-latest
+    needs: [audit, lint, unit-tests, build, typecheck]
+    steps:
+      - name: All checks passed
+        run: echo "All CI checks have passed successfully!"

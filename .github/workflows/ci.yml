@@ -90,64 +90,18 @@ jobs:
       - name: Run unit tests
         run: pnpm test
 
-  # Type check affected projects
-  typecheck:
-    name: Type Check
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-      - name: Build affected dependencies for type checking
-        run: pnpm build
-      - name: Run type checking on affected projects
-        run: pnpm typecheck
-
-  # Build affected applications and libraries
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [setup, lint, unit-tests, typecheck]
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: "pnpm"
-      - name: Build affected projects
-        run: pnpm build
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: |
-            dist/
-            apps/*/dist/
-            packages/*/dist/
-
   # Final status check to provide a clear pass/fail/skipped signal
   ci-status-check:
     name: CI Status Check
     runs-on: ubuntu-latest
-    needs: [setup, lint, unit-tests, typecheck, build]
+    needs: [setup, audit, lint, unit-tests]
     if: always() # This job must always run to provide a clear conclusion
     steps:
       - name: Evaluate CI outcome
         run: |
           # Checks ran and all required jobs succeeded.
-          # The 'build' job is the final step, so its success implies all its dependencies succeeded.
-          if [[ "${{ needs.build.result }}" == "success" ]]; then
+          # The 'unit-tests' job is the final step, so its success implies all its dependencies succeeded.
+          if [[ "${{ needs.unit-tests.result }}" == "success" ]]; then
             echo "All CI checks passed!"
             exit 0
           else

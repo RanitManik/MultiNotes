@@ -2,18 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Loader2, Mail, Lock, AlertTriangle } from "lucide-react";
+import { LoginForm } from "@workspace/ui/components/login-form";
+import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -77,7 +67,7 @@ export default function LoginPage() {
 
   if (checkingAuth) {
     return (
-      <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br">
+      <div className="bg-background flex min-h-screen items-center justify-center">
         <div className="text-center">
           <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
           <p className="text-muted-foreground">Checking authentication...</p>
@@ -87,79 +77,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-foreground text-2xl font-bold">
-            Welcome to MultiNotes
-          </CardTitle>
-          <CardDescription>
-            Sign in to your account to access your notes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground text-sm">
-              Don't have an account?{" "}
-              <button
-                type="button"
-                onClick={() => router.push("/auth/register")}
-                className="text-primary font-medium hover:underline"
-              >
-                Sign up
-              </button>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="bg-background flex min-h-screen items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <LoginForm
+          email={email}
+          password={password}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onSubmit={handleSubmit}
+          loading={loading}
+          error={error}
+          onSignUp={() => router.push("/auth/register")}
+        />
+      </div>
     </div>
   );
 }

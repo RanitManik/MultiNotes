@@ -1,231 +1,379 @@
 # MultiNotes
 
+A production-ready multi-tenant notes application with role-based access control, subscription management, and comprehensive testing.
+
 > [!NOTE]
-> This repository is a personal learning project and proof-of-concept. It is not production-ready, not intended to be used to earn money, and should not be relied upon for real-world production systems. Use it for learning, experimentation, and reference only.
+> **⚠️ Learning Project Notice**: This repository is a personal learning project and proof-of-concept. It is not intended for commercial use or real-world production systems without further hardening. Use it for learning, experimentation, and reference purposes.
 
-A multi-tenant notes application with role-based access control and subscription management.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CI](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/RanitManik/MultiNotes/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/github-code-scanning/codeql)
+[![Dependabot Updates](https://github.com/RanitManik/MultiNotes/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/dependabot/dependabot-updates)
+[![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
+[![pnpm](https://img.shields.io/badge/pnpm-10.4.1-blue)](https://pnpm.io/)
 
-<details>
-<summary>Table of Contents</summary>
+## 📑 Table of Contents
 
 - [Features](#features)
 - [Tech Stack](#tech-stack)
-- [Quick Start](#quick-start)
-- [Environment Variables](#environment-variables)
-- [Scripts](#scripts)
-- [Test Accounts](#test-accounts)
-- [API Endpoints](#api-endpoints)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Database Setup](#database-setup)
+  - [Running the Application](#running-the-application)
+- [Configuration](#configuration)
+- [Testing](#testing)
+- [Development Workflow](#development-workflow)
+- [API Documentation](#api-documentation)
 - [Deployment](#deployment)
 - [Architecture](#architecture)
-- [Security](#security)
-- [Development](#development)
-- [Development Tools](#development-tools)
+- [Contributing](#contributing)
 - [License](#license)
-
-</details>
 
 ## Features
 
-- **Multi-tenant architecture** with complete data isolation
-- **Role-based permissions** (Admin/Member)
-- **Subscription plans** (Free: 3 notes, Pro: unlimited)
-- **Rich text editor** with TipTap
-- **Real-time updates** with optimistic UI
-- **Dark/light theme** support
-- **Comprehensive testing** (Unit, Integration, E2E)
+- 🏢 **Multi-tenant Architecture** - Complete data isolation between organizations
+- 🔐 **Role-Based Access Control** - Admin and Member roles with fine-grained permissions
+- 💎 **Subscription Management** - Free tier (3 notes) and Pro tier (unlimited notes)
+- ✍️ **Rich Text Editor** - Powered by TipTap for seamless content creation
+- ⚡ **Optimistic UI Updates** - Real-time feedback for better user experience
+- 🎨 **Theme Support** - Dark and light modes with system preference detection
+- 🧪 **Comprehensive Testing** - Unit, integration, and end-to-end test coverage
+- 🔒 **Security First** - JWT authentication, bcrypt password hashing, tenant isolation
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15 (App Router) with React 19
-- **Backend**: Next.js API Routes (serverless functions)
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: JWT (HS256)
-- **Styling**: Tailwind CSS with shadcn/ui components
-- **Testing**: Jest + Playwright
-- **Deployment**: Vercel
+| Layer               | Technology                                 |
+| ------------------- | ------------------------------------------ |
+| **Frontend**        | Next.js 15 (App Router), React 19          |
+| **Backend**         | Next.js API Routes (Serverless)            |
+| **Database**        | PostgreSQL with Prisma ORM                 |
+| **Authentication**  | JWT (HS256)                                |
+| **Styling**         | Tailwind CSS + shadcn/ui                   |
+| **Testing**         | Jest (Unit/Integration) + Playwright (E2E) |
+| **Deployment**      | Vercel                                     |
+| **Package Manager** | pnpm                                       |
 
-## Quick Start
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 20+
-- PostgreSQL database (local or hosted like Supabase/Neon)
-- pnpm
+Ensure you have the following installed:
 
-### Setup
+- **Node.js** 20 or higher
+- **pnpm** (Install via `npm install -g pnpm`)
+- **PostgreSQL** database (local installation or cloud provider like Supabase/Neon)
 
-1. Install dependencies:
+### Installation
+
+1. **Clone the repository:**
+
+```bash
+git clone https://github.com/RanitManik/MultiNotes.git
+cd MultiNotes
+```
+
+2. **Install dependencies:**
 
 ```bash
 pnpm install
 ```
 
-1. Set up the database:
+### Database Setup
+
+1. **Configure environment variables:**
+
+Create a `.env.local` file in the `apps/web/` directory:
+
+```env
+DATABASE_URL="postgresql://username:password@localhost:5432/multinotes"
+JWT_SECRET="your-super-secret-jwt-key-minimum-32-characters"
+```
+
+2. **Run database migrations:**
 
 ```bash
 cd apps/web
 pnpm db:migrate
+```
+
+3. **Seed the database with test data:**
+
+```bash
 pnpm db:seed
 ```
 
-1. Run the development server:
+This creates two test tenants with sample users and notes.
+
+### Running the Application
+
+Start the development server:
 
 ```bash
 pnpm dev
 ```
 
-The app will be available at `http://localhost:3000`.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Environment Variables
+### Test Accounts
 
-Create a `.env.local` file in `apps/web/` with:
+Use these credentials to explore the application (password: `password` for all):
 
-```env
-DATABASE_URL="postgresql://username:password@localhost:5432/multinotes"
-JWT_SECRET="your-super-secret-jwt-key-here"
-```
+**Acme Corporation:**
 
-## Scripts
+- `admin@acme.test` - Administrator with full permissions
+- `user@acme.test` - Regular member
+
+**Globex Corporation:**
+
+- `admin@globex.test` - Administrator with full permissions
+- `user@globex.test` - Regular member
+
+## Configuration
+
+### Environment Variables
+
+| Variable       | Description                               | Required |
+| -------------- | ----------------------------------------- | -------- |
+| `DATABASE_URL` | PostgreSQL connection string              | ✅ Yes   |
+| `JWT_SECRET`   | Secret key for JWT signing (min 32 chars) | ✅ Yes   |
+
+### Available Scripts
 
 ```bash
 # Development
-pnpm dev              # Start dev server
-pnpm build            # Build for production
-pnpm lint             # Run linting
+pnpm dev              # Start development server (localhost:3000)
+pnpm build            # Create production build
+pnpm start            # Start production server
+pnpm lint             # Run ESLint
+pnpm format           # Format code with Prettier
+
+# Database Operations
+pnpm db:migrate       # Apply database migrations
+pnpm db:seed          # Seed database with test data
+pnpm db:generate      # Regenerate Prisma client
+pnpm db:studio        # Open Prisma Studio (database GUI)
+pnpm db:reset         # Reset database (⚠️ destroys all data)
+
+# Testing
 pnpm test             # Run all tests
+pnpm test:unit        # Run unit tests only
+pnpm test:e2e         # Run end-to-end tests
+pnpm test:watch       # Run tests in watch mode
 
-# Database
-pnpm db:migrate       # Run migrations
-pnpm db:seed          # Seed database
-pnpm db:generate      # Generate Prisma client
-
-# Git Hooks & Commits
-pnpm commit           # Interactive commit with conventional format
+# Git Workflow
+pnpm commit           # Interactive commit with Commitizen
 ```
 
-## Development Tools
+## Testing
 
-This project uses several development tools to maintain code quality:
+This project maintains high test coverage across multiple layers:
 
-- **EditorConfig**: Maintains consistent coding styles across editors
-- **Husky**: Git hooks for pre-commit and commit-msg validation
-- **lint-staged**: Run linters only on staged files
-- **Commitlint**: Enforce conventional commit messages
-- **Commitizen**: Interactive commit message prompts
-- **Prettier**: Code formatting
-- **ESLint**: Code linting
+### Unit Tests (Jest)
 
-### Pre-commit Hooks
+```bash
+pnpm test:unit
+```
 
-The following checks run automatically on `git commit`:
+Tests individual functions, components, and utilities in isolation.
 
-- **lint-staged**: Formats and lints staged files
-- **commitlint**: Validates commit message format
+### Integration Tests (Jest)
 
-### Conventional Commits
+```bash
+pnpm test:integration
+```
 
-This project follows [Conventional Commits](https://conventionalcommits.org/) specification. Use:
+Tests API routes, database interactions, and business logic.
+
+### End-to-End Tests (Playwright)
+
+```bash
+pnpm test:e2e
+```
+
+Tests complete user workflows across the entire application.
+
+## Development Workflow
+
+### Code Quality Tools
+
+This project uses several tools to maintain code quality and consistency:
+
+- **EditorConfig** - Consistent coding styles across editors
+- **Prettier** - Automatic code formatting
+- **ESLint** - Code linting and best practices
+- **Husky** - Git hooks for automation
+- **lint-staged** - Run checks only on staged files
+- **Commitlint** - Enforce commit message conventions
+- **Commitizen** - Interactive commit creation
+
+### Git Hooks
+
+**Pre-commit:** Automatically runs on every commit
+
+- Formats code with Prettier
+- Lints code with ESLint
+- Fixes auto-fixable issues
+
+**Commit-msg:** Validates commit message format
+
+### Commit Message Convention
+
+This project follows [Conventional Commits](https://www.conventionalcommits.org/). Use the interactive prompt:
 
 ```bash
 pnpm commit
 ```
 
-For interactive commit creation, or manually format as:
+Or format manually:
 
-```text
-type(scope): description
+```
+<type>(<scope>): <subject>
 
 [optional body]
 
 [optional footer]
 ```
 
-Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `ci`, `build`, `perf`, `revert`
+**Types:**
 
-## Test Accounts
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation changes
+- `style` - Code style changes (formatting, semicolons, etc.)
+- `refactor` - Code refactoring
+- `test` - Adding or updating tests
+- `chore` - Maintenance tasks
+- `perf` - Performance improvements
+- `ci` - CI/CD changes
+- `build` - Build system changes
+- `revert` - Revert previous commit
 
-All accounts use password: `password`
+**Examples:**
 
-**Acme Tenant:**
+```bash
+feat(notes): add markdown export functionality
+fix(auth): resolve token expiration edge case
+docs(readme): update installation instructions
+```
 
-- `admin@acme.test` (Admin)
-- `user@acme.test` (Member)
+## API Documentation
 
-**Globex Tenant:**
+### Authentication
 
-- `admin@globex.test` (Admin)
-- `user@globex.test` (Member)
+| Endpoint           | Method | Description     | Auth Required |
+| ------------------ | ------ | --------------- | ------------- |
+| `/api/auth/login`  | POST   | User login      | ❌            |
+| `/api/auth/invite` | POST   | Invite new user | ✅ Admin only |
 
-## API Endpoints
+### Notes
 
-- `GET /api/health` - Health check
-- `POST /api/auth/login` - User login
-- `POST /api/auth/invite` - Invite user (Admin only)
-- `GET /api/notes` - List notes
-- `POST /api/notes` - Create note
-- `GET /api/notes/:id` - Get note
-- `PUT /api/notes/:id` - Update note
-- `DELETE /api/notes/:id` - Delete note
-- `POST /api/tenants/:slug/upgrade` - Upgrade to Pro (Admin only)
+| Endpoint         | Method | Description     | Auth Required |
+| ---------------- | ------ | --------------- | ------------- |
+| `/api/notes`     | GET    | List all notes  | ✅            |
+| `/api/notes`     | POST   | Create new note | ✅            |
+| `/api/notes/:id` | GET    | Get note by ID  | ✅            |
+| `/api/notes/:id` | PUT    | Update note     | ✅            |
+| `/api/notes/:id` | DELETE | Delete note     | ✅            |
+
+### Tenants
+
+| Endpoint                     | Method | Description         | Auth Required |
+| ---------------------------- | ------ | ------------------- | ------------- |
+| `/api/tenants/:slug/upgrade` | POST   | Upgrade to Pro plan | ✅ Admin only |
+
+### Health Check
+
+| Endpoint      | Method | Description           | Auth Required |
+| ------------- | ------ | --------------------- | ------------- |
+| `/api/health` | GET    | Service health status | ❌            |
 
 ## Deployment
 
-### Vercel
+### Deploy to Vercel (Recommended)
 
-1. Push your code to GitHub
-2. Connect your repository to Vercel
-3. Set environment variables in Vercel dashboard:
-   - `DATABASE_URL`
-   - `JWT_SECRET`
-4. Deploy
-
-Frontend URL: [Your Vercel deployment URL]
-
-### Manual
+1. **Push code to GitHub:**
 
 ```bash
+git push origin main
+```
+
+2. **Import project in Vercel:**
+   - Go to [vercel.com](https://vercel.com)
+   - Click "Import Project"
+   - Select your repository
+
+3. **Configure environment variables:**
+   - Add `DATABASE_URL`
+   - Add `JWT_SECRET`
+
+4. **Deploy:**
+   - Vercel will automatically build and deploy
+   - Run migrations on first deploy: `npx prisma migrate deploy`
+
+### Manual Deployment
+
+```bash
+# Build the application
 pnpm build
+
+# Run production migrations
 pnpm db:migrate:prod
+
+# Start production server
+pnpm start
 ```
 
 ## Architecture
 
-This application uses a **shared schema with tenant_id column** approach for multi-tenancy. This means:
+### Multi-Tenancy Strategy
 
-- All tenants share the same database schema
-- Each table includes a `tenant_id` column to isolate data
-- All queries include `WHERE tenant_id = $CURRENT_TENANT` filters
-- Ensures complete data separation between tenants
+This application implements **shared schema multi-tenancy**:
 
-## Security
-
-- JWT tokens expire in 24 hours
-- All database queries filtered by tenant_id
-- Passwords hashed with bcrypt
-- CORS configured for cross-origin requests
-
-## Development
-
-### Running Tests
-
-```bash
-# Run automated tests (when available)
-pnpm test
+```text
+┌─────────────────────────────────────┐
+│         PostgreSQL Database         │
+├─────────────────────────────────────┤
+│  Tables (with tenant_id column)    │
+│  ├── tenants                        │
+│  ├── users (tenant_id FK)           │
+│  ├── notes (tenant_id FK)           │
+│  └── subscriptions (tenant_id FK)   │
+└─────────────────────────────────────┘
 ```
 
-### Database Management
+**Key Characteristics:**
 
-```bash
-# Generate Prisma client
-npx prisma generate
+- Single database schema shared by all tenants
+- Every table contains a `tenant_id` column
+- All queries automatically filtered by current tenant
+- Complete data isolation enforced at application level
+- Cost-effective and scalable for SMB applications
 
-# Create migration
-npx prisma migrate dev --name migration-name
+### Security Model
 
-# Reset database
-npx prisma migrate reset
-```
+- 🔐 **Authentication:** JWT tokens with 24-hour expiration
+- 🔒 **Authorization:** Role-based access control (Admin/Member)
+- 🛡️ **Data Isolation:** Row-level tenant filtering on all queries
+- 🔑 **Password Security:** Bcrypt hashing with salt rounds
+- 🌐 **CORS:** Configured for secure cross-origin requests
+- 🚫 **SQL Injection:** Parameterized queries via Prisma
 
-## License
+## Contributing
 
-MIT
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/amazing-feature`)
+3. Make your changes
+4. Commit using conventional commits (`pnpm commit`)
+5. Push to your branch (`git push origin feat/amazing-feature`)
+6. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+<div align="center">Built with ❤️ for learning and exploration</div>

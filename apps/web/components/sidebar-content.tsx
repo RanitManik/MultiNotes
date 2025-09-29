@@ -210,6 +210,10 @@ export const SidebarContent = React.memo(function SidebarContent({
         <div className="min-w-0 p-3">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8" />
+                <Skeleton className="h-6 w-24" />
+              </div>
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-3 w-16" />
             </div>
@@ -245,9 +249,8 @@ export const SidebarContent = React.memo(function SidebarContent({
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="truncate text-pretty text-xl font-medium">
-                {tenant?.slug}
-              </span>
+              <img src="/logo.svg" alt="MultiNotes Logo" className="h-8 w-8" />
+              <span className="text-lg font-semibold">MultiNotes</span>
               <Badge
                 variant="secondary"
                 className="px-1.5 py-0.5 text-xs font-medium"
@@ -255,11 +258,17 @@ export const SidebarContent = React.memo(function SidebarContent({
                 {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
               </Badge>
             </div>
+            {/* <div className="flex items-center gap-2">
+              <span className="truncate text-pretty text-xl font-medium">
+                {tenant?.slug}
+              </span>
+              
+            </div>
             <p className="text-muted-foreground truncate text-xs">
               {tenant?.plan === "FREE" && tenant?.limit !== null
                 ? `${tenant?.noteCount} / ${tenant?.limit} Notes`
                 : `${tenant?.noteCount || 0} Notes`}
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

@@ -287,51 +287,24 @@ docs(readme): update installation instructions
 
 ## API Documentation
 
-### Authentication
-
-| Endpoint                      | Method   | Description                                                   |
-| ----------------------------- | -------- | ------------------------------------------------------------- |
-| `/api/auth/register`          | POST     | Register new user account with email verification             |
-| `/api/auth/forgot-password`   | POST     | Request password reset email                                  |
-| `/api/auth/reset-password`    | POST     | Reset password using reset token                              |
-| `/api/auth/send-verification` | POST     | Send email verification link                                  |
-| `/api/auth/verify-email`      | GET      | Verify email address using verification token                 |
-| `/api/auth/[...nextauth]`     | GET/POST | NextAuth.js authentication (login, OAuth, session management) |
-
-### Notes
-
-| Endpoint         | Method | Description                                            |
-| ---------------- | ------ | ------------------------------------------------------ |
-| `/api/notes`     | GET    | Retrieve all notes for the authenticated user's tenant |
-| `/api/notes`     | POST   | Create a new note (enforces free plan limits)          |
-| `/api/notes/:id` | GET    | Retrieve a specific note by ID (tenant-scoped)         |
-| `/api/notes/:id` | PUT    | Update an existing note (tenant-scoped)                |
-| `/api/notes/:id` | DELETE | Delete a note (tenant-scoped)                          |
-
-### Organization
-
-| Endpoint                   | Method | Description                                                |
-| -------------------------- | ------ | ---------------------------------------------------------- |
-| `/api/organization/create` | POST   | Create a new organization and assign current user as admin |
-| `/api/organization/invite` | POST   | Send invitation emails to join the organization            |
-
-### Tenant
-
-| Endpoint      | Method | Description                                             |
-| ------------- | ------ | ------------------------------------------------------- |
-| `/api/tenant` | GET    | Get current tenant information including plan and usage |
-
-### Tenants
-
-| Endpoint                     | Method | Description                             |
-| ---------------------------- | ------ | --------------------------------------- |
-| `/api/tenants/:slug/upgrade` | POST   | Upgrade tenant to Pro plan (admin only) |
-
-### Health Check
-
-| Endpoint      | Method | Description                   |
-| ------------- | ------ | ----------------------------- |
-| `/api/health` | GET    | Service health check endpoint |
+| Category       | Endpoint                      | Method   | Description                                                   |
+| -------------- | ----------------------------- | -------- | ------------------------------------------------------------- |
+| Authentication | `/api/auth/register`          | POST     | Register new user account with email verification             |
+| Authentication | `/api/auth/forgot-password`   | POST     | Request password reset email                                  |
+| Authentication | `/api/auth/reset-password`    | POST     | Reset password using reset token                              |
+| Authentication | `/api/auth/send-verification` | POST     | Send email verification link                                  |
+| Authentication | `/api/auth/verify-email`      | GET      | Verify email address using verification token                 |
+| Authentication | `/api/auth/[...nextauth]`     | GET/POST | NextAuth.js authentication (login, OAuth, session management) |
+| Notes          | `/api/notes`                  | GET      | Retrieve all notes for the authenticated user's tenant        |
+| Notes          | `/api/notes`                  | POST     | Create a new note (enforces free plan limits)                 |
+| Notes          | `/api/notes/:id`              | GET      | Retrieve a specific note by ID (tenant-scoped)                |
+| Notes          | `/api/notes/:id`              | PUT      | Update an existing note (tenant-scoped)                       |
+| Notes          | `/api/notes/:id`              | DELETE   | Delete a note (tenant-scoped)                                 |
+| Organization   | `/api/organization/create`    | POST     | Create a new organization and assign current user as admin    |
+| Organization   | `/api/organization/invite`    | POST     | Send invitation emails to join the organization               |
+| Tenant         | `/api/tenant`                 | GET      | Get current tenant information including plan and usage       |
+| Tenants        | `/api/tenants/:slug/upgrade`  | POST     | Upgrade tenant to Pro plan (admin only)                       |
+| Health Check   | `/api/health`                 | GET      | Service health check endpoint                                 |
 
 ## Deployment
 
@@ -343,16 +316,16 @@ docs(readme): update installation instructions
 git push origin main
 ```
 
-2. **Import project in Vercel:**
+1. **Import project in Vercel:**
    - Go to [vercel.com](https://vercel.com)
    - Click "Import Project"
    - Select your repository
 
-3. **Configure environment variables:**
+2. **Configure environment variables:**
    - Add `DATABASE_URL`
    - Add `NEXTAUTH_SECRET`
 
-4. **Deploy:**
+3. **Deploy:**
    - Vercel will automatically build and deploy
    - Run migrations on first deploy: `npx prisma migrate deploy`
 

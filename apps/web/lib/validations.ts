@@ -73,6 +73,13 @@ export const organizationSchema = z.object({
     ),
 });
 
+export const createOrganizationSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Organization name is required")
+    .max(100, "Organization name must be less than 100 characters"),
+});
+
 // API validation schemas
 export const createNoteSchema = z.object({
   title: z
@@ -96,6 +103,7 @@ export type RegisterInput = z.infer<typeof registerSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type OrganizationInput = z.infer<typeof organizationSchema>;
+export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;
 export type InviteUserInput = z.infer<typeof inviteUserSchema>;

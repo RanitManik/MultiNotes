@@ -14,7 +14,12 @@ import {
   ArrowRight,
   AlertTriangle,
 } from "lucide-react";
-import { organizationSchema, type OrganizationInput } from "@/lib/validations";
+import {
+  organizationSchema,
+  createOrganizationSchema,
+  type OrganizationInput,
+  type CreateOrganizationInput,
+} from "@/lib/validations";
 const Confetti = React.lazy(() => import("react-confetti"));
 
 type SetupState = "form" | "success";
@@ -49,7 +54,7 @@ export default function OrganizationSetupPage() {
     e.preventDefault();
 
     // Validate form data
-    const validationResult = organizationSchema.safeParse({
+    const validationResult = createOrganizationSchema.safeParse({
       name: organizationName.trim(),
     });
 

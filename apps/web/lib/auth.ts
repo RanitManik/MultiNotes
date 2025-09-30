@@ -175,6 +175,19 @@ const config: NextAuthConfig = {
           (token as any).tenantSlug = (user as any).tenantSlug;
           (token as any).tenantPlan = (user as any).tenantPlan;
           (token as any).role = (user as any).role;
+        } else {
+          // For OAuth users, fetch tenant data from database on sign in
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            include: { tenant: true },
+          });
+
+          if (dbUser) {
+            (token as any).tenantId = dbUser.tenant_id;
+            (token as any).tenantSlug = dbUser.tenant?.slug;
+            (token as any).tenantPlan = dbUser.tenant?.plan;
+            (token as any).role = dbUser.role;
+          }
         }
       }
 

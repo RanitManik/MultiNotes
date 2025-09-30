@@ -549,35 +549,51 @@ function NotesDashboardContent() {
   const onUpgrade = useCallback(async () => {
     if (upgradingRef.current) return;
     upgradingRef.current = true;
+    // Clear any existing confetti
+    setShowConfetti(false);
+    setConfettiFading(false);
     try {
       await toast.promise(upgradeTenantMutation.mutateAsync(tenant.slug), {
         loading: "Upgrading to Pro...",
-        success: "Upgraded to Pro successfully!",
-        error: "Upgrade failed to process.",
+        success: result => {
+          // Note: Session should be updated to reflect pro plan, or page may need refresh
+
+          // 🎊 Show confetti and fade it out smoothly before hiding.
+          const DURATION = 6000; // total confetti duration
+          const FADE_MS = 1000; // fade duration at the end
+          // Clear any existing timers
+          if (confettiTimers.current.fade)
+            clearTimeout(confettiTimers.current.fade);
+          if (confettiTimers.current.hide)
+            clearTimeout(confettiTimers.current.hide);
+
+          setConfettiFading(false);
+          setShowConfetti(true);
+          // Schedule fade to start shortly before the end
+          confettiTimers.current.fade = setTimeout(
+            () => setConfettiFading(true),
+            DURATION - FADE_MS
+          ) as unknown as number;
+          // Hide after the full duration
+          confettiTimers.current.hide = setTimeout(() => {
+            setShowConfetti(false);
+            setConfettiFading(false);
+          }, DURATION) as unknown as number;
+
+          return "Upgraded to Pro successfully!";
+        },
+        error: async err => {
+          if (err?.json) {
+            try {
+              const data = await err.json();
+              return data.error || "Upgrade failed to process.";
+            } catch {
+              return "Upgrade failed to process.";
+            }
+          }
+          return "Upgrade failed to process.";
+        },
       });
-      // Note: Session should be updated to reflect pro plan, or page may need refresh
-
-      // 🎊 Show confetti and fade it out smoothly before hiding.
-      const DURATION = 6000; // total confetti duration
-      const FADE_MS = 1000; // fade duration at the end
-      // Clear any existing timers
-      if (confettiTimers.current.fade)
-        clearTimeout(confettiTimers.current.fade);
-      if (confettiTimers.current.hide)
-        clearTimeout(confettiTimers.current.hide);
-
-      setConfettiFading(false);
-      setShowConfetti(true);
-      // Schedule fade to start shortly before the end
-      confettiTimers.current.fade = setTimeout(
-        () => setConfettiFading(true),
-        DURATION - FADE_MS
-      ) as unknown as number;
-      // Hide after the full duration
-      confettiTimers.current.hide = setTimeout(() => {
-        setShowConfetti(false);
-        setConfettiFading(false);
-      }, DURATION) as unknown as number;
     } catch (err) {
       //
     }

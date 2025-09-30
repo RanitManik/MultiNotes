@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { LoginForm } from "@workspace/ui/components/login-form";
 import { signIn, useSession } from "next-auth/react";
 import { loginSchema, type LoginInput } from "@/lib/validations";
+import axios from "axios";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,34 +50,39 @@ export default function LoginPage() {
     const validatedData = validationResult.data;
 
     try {
-      const result = await signIn("credentials", {
-        email: validatedData.email,
-        password: validatedData.password,
-        redirect: false,
-      });
+      // Call login API
+      const response = await axios.post("/api/auth/login", validatedData);
 
-      if (result?.error) {
-        if (result.error === "EmailNotVerified") {
-          setError(
-            "Please verify your email before signing in. Check your inbox for the verification link."
-          );
-        } else if (result.error === "CredentialsSignin") {
-          setError("Invalid email or password");
+      if (response.data.user) {
+        // If login successful, use NextAuth to create session
+        const result = await signIn("credentials", {
+          email: validatedData.email,
+          password: validatedData.password,
+          redirect: false,
+        });
+
+        if (result?.ok) {
+          // Force a session refresh
+          await router.refresh();
+          // The useEffect will handle the redirect when session updates
         } else {
-          setError(result.error);
+          setError("Failed to create session");
+          setLoading(false);
         }
-        setLoading(false);
-      } else if (result?.ok) {
-        // Force a session refresh
-        await router.refresh();
-        // The useEffect will handle the redirect when session updates
-      } else {
-        setError("Sign in failed");
-        setLoading(false);
       }
-    } catch (error) {
-      console.error("Sign in error:", error);
-      setError("Network error");
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      if (error.response?.data?.error === "EmailNotVerified") {
+        setError(
+          error.response.data.message ||
+            "Please verify your email before signing in."
+        );
+      } else if (error.response?.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Network error");
+      }
       setLoading(false);
     }
   };

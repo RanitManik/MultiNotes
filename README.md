@@ -156,12 +156,14 @@ Use these credentials to explore the application (password: `password` for all):
 
 | Variable               | Description                               | Url                                               |
 | ---------------------- | ----------------------------------------- | ------------------------------------------------- |
-| `DATABASE_URL`         | PostgreSQL connection string (pooled)     | [Neon](https://neon.tech)                         |
-| `DIRECT_URL`           | Direct PostgreSQL connection (migrations) | [Neon](https://neon.tech)                         |
+| `DATABASE_URL`         | PostgreSQL connection string (pooled)     | [Supabase](https://supabase.com)                  |
+| `DIRECT_URL`           | Direct PostgreSQL connection (migrations) | [Supabase](https://supabase.com)                  |
 | `NEXTAUTH_URL`         | Base URL of your application              | -                                                 |
 | `NEXTAUTH_SECRET`      | Secret for NextAuth session encryption    | [Generate](https://generate-secret.vercel.app/32) |
 | `GITHUB_CLIENT_ID`     | GitHub OAuth client ID                    | [GitHub](https://github.com/settings/developers)  |
 | `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret                | [GitHub](https://github.com/settings/developers)  |
+| `GOOGLE_CLIENT_ID`     | Google OAuth client ID                    | [Google](https://console.developers.google.com/)  |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret                | [Google](https://console.developers.google.com/)  |
 | `BREVO_API_KEY`        | Brevo email API key                       | [Brevo](https://www.brevo.com/)                   |
 | `BREVO_FROM_EMAIL`     | Verified sender email for Brevo           | [Brevo](https://www.brevo.com/)                   |
 | `BREVO_FROM_NAME`      | Sender name for emails                    | [Brevo](https://www.brevo.com/)                   |

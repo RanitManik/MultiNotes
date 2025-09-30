@@ -133,7 +133,7 @@ export function RegisterForm({
             className="w-full"
             onClick={onGitHubSignIn}
             type="button"
-            disabled={oauthLoading === "github"}
+            disabled={!!oauthLoading}
           >
             {oauthLoading === "github" ? (
               <>
@@ -157,7 +157,7 @@ export function RegisterForm({
             className="w-full"
             onClick={onGoogleSignIn}
             type="button"
-            disabled={oauthLoading === "google"}
+            disabled={!!oauthLoading}
           >
             {oauthLoading === "google" ? (
               <>

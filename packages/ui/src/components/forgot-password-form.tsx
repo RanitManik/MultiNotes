@@ -3,7 +3,7 @@ import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Label } from "@workspace/ui/components/label";
 import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { AlertTriangle, CheckCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle, Loader2 } from "lucide-react";
 
 export function ForgotPasswordForm({
   className,
@@ -67,7 +67,14 @@ export function ForgotPasswordForm({
           </Alert>
         )}
         <Button type="submit" className="w-full" disabled={loading}>
-          {loading ? "Sending..." : "Send reset link"}
+          {loading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            "Send reset link"
+          )}
         </Button>
       </div>
       <div className="text-center text-sm">

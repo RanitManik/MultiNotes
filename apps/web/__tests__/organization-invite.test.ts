@@ -9,6 +9,7 @@ jest.mock("@/lib/auth", () => ({
 // Mock email
 jest.mock("@/lib/email", () => ({
   sendVerificationEmail: jest.fn(),
+  sendOrganizationInviteEmail: jest.fn(),
 }));
 
 // Mock crypto

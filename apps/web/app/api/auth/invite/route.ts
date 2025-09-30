@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { sendOrganizationInviteEmail } from "@/lib/email";
+import { randomBytes } from "crypto";
 
 function generateRandomPassword(): string {
   const chars =
@@ -59,12 +61,17 @@ export async function POST(request: NextRequest) {
     const userPassword = password || generateRandomPassword();
     const hashedPassword = await bcrypt.hash(userPassword, 10);
 
+    // Generate verification token
+    const verificationToken = randomBytes(32).toString("hex");
+    const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days for invites
+
     const newUser = await prisma.user.create({
       data: {
         email,
         password_hash: hashedPassword,
         role: role as "admin" | "member",
         tenant_id: session.user.tenantId,
+        emailVerified: null, // Not verified yet
       },
       select: {
         id: true,
@@ -79,8 +86,31 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Save verification token
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: verificationToken,
+        expires: tokenExpires,
+      },
+    });
+
+    // Send invitation email with verification link
+    const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
+    const emailResult = await sendOrganizationInviteEmail(
+      email,
+      session.user.name || session.user.email || "Admin",
+      newUser.tenant?.name || "the organization",
+      verificationUrl
+    );
+
+    if (!emailResult.success) {
+      console.error("Failed to send invitation email:", emailResult.error);
+      // Don't fail the request, but log the error
+    }
+
     return NextResponse.json({
-      message: "User invited successfully",
+      message: "User invited successfully. An invitation email has been sent.",
       user: newUser,
       password: userPassword,
     });

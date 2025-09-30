@@ -13,11 +13,26 @@ jest.mock("@/lib/db", () => ({
       findUnique: jest.fn(),
       create: jest.fn(),
     },
+    verificationToken: {
+      create: jest.fn(),
+    },
   },
+}));
+
+// Mock email
+jest.mock("@/lib/email", () => ({
+  sendOrganizationInviteEmail: jest.fn(),
+}));
+
+// Mock crypto
+jest.mock("crypto", () => ({
+  randomBytes: jest.fn(),
 }));
 
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { sendOrganizationInviteEmail } from "@/lib/email";
+import { randomBytes } from "crypto";
 
 describe("Invite API", () => {
   beforeEach(() => {
@@ -143,6 +158,8 @@ describe("Invite API", () => {
         id: "1",
         role: "admin",
         tenantId: "1",
+        name: "Admin User",
+        email: "admin@example.com",
       },
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
@@ -155,6 +172,13 @@ describe("Invite API", () => {
         name: "Test Tenant",
       },
     });
+    (prisma.verificationToken.create as jest.Mock).mockResolvedValue({});
+    (sendOrganizationInviteEmail as jest.Mock).mockResolvedValue({
+      success: true,
+    });
+    (randomBytes as jest.Mock).mockReturnValue({
+      toString: jest.fn().mockReturnValue("mocktoken"),
+    });
 
     await testApiHandler({
       appHandler,
@@ -165,7 +189,9 @@ describe("Invite API", () => {
         });
         expect(res.status).toBe(200);
         const json = await res.json();
-        expect(json.message).toBe("User invited successfully");
+        expect(json.message).toBe(
+          "User invited successfully. An invitation email has been sent."
+        );
         expect(json.user.email).toBe("test@example.com");
         expect(json.password).toBeDefined();
         expect(typeof json.password).toBe("string");
@@ -180,6 +206,8 @@ describe("Invite API", () => {
         id: "1",
         role: "admin",
         tenantId: "1",
+        name: "Admin User",
+        email: "admin@example.com",
       },
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
@@ -191,6 +219,13 @@ describe("Invite API", () => {
         slug: "test-tenant",
         name: "Test Tenant",
       },
+    });
+    (prisma.verificationToken.create as jest.Mock).mockResolvedValue({});
+    (sendOrganizationInviteEmail as jest.Mock).mockResolvedValue({
+      success: true,
+    });
+    (randomBytes as jest.Mock).mockReturnValue({
+      toString: jest.fn().mockReturnValue("mocktoken"),
     });
 
     await testApiHandler({
@@ -206,7 +241,9 @@ describe("Invite API", () => {
         });
         expect(res.status).toBe(200);
         const json = await res.json();
-        expect(json.message).toBe("User invited successfully");
+        expect(json.message).toBe(
+          "User invited successfully. An invitation email has been sent."
+        );
         expect(json.user.email).toBe("test@example.com");
         expect(json.password).toBe("custompassword123");
       },

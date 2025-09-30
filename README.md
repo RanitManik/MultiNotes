@@ -1,9 +1,11 @@
 # MultiNotes
 
-A production-ready multi-tenant notes application with role-based access control, subscription management, and comprehensive testing.
+A production-ready multi-tenant notes | **Authentication** | NextAuth.js |pplication with role-based access control, subscription management, and comprehensive testing.
 
 > [!NOTE]
-> **⚠️ Learning Project Notice**: This repository is a personal learning project and proof-of-concept. It is not intended for commercial use or real-world production systems without further hardening. Use it for learning, experimentation, and reference purposes.
+> **⚠️ Learning Project Notice**: This repository is a personal learning project and proof-of-concept. It is not intended for commercial use | `/api/auth/send-verification` | POST | Send email verification |
+> | `/api/auth/verify-email` | GET | Verify email address using verification token |
+> | `/api/auth/[...nextauth]` | GET/POST | NextAuth.js session management routes |`/api/auth/jwt` | GET | Generate JWT token for API access (requires session) | - |real-world production systems without further hardening. Use it for learning, experimentation, and reference purposes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml)
@@ -32,14 +34,14 @@ A production-ready multi-tenant notes application with role-based access control
 
 ## Features
 
-- 🏢 **Multi-tenant Architecture** - Complete data isolation between organizations
-- 🔐 **Role-Based Access Control** - Admin and Member roles with fine-grained permissions
-- 💎 **Subscription Management** - Free tier (3 notes) and Pro tier (unlimited notes)
-- ✍️ **Rich Text Editor** - Powered by TipTap for seamless content creation
-- ⚡ **Optimistic UI Updates** - Real-time feedback for better user experience
-- 🎨 **Theme Support** - Dark and light modes with system preference detection
-- 🧪 **Comprehensive Testing** - Unit, integration, and end-to-end test coverage
-- 🔒 **Security First** - JWT authentication, bcrypt password hashing, tenant isolation
+- **Multi-tenant Architecture** - Complete data isolation between organizations
+- **Role-Based Access Control** - Admin and Member roles with fine-grained permissions
+- **Subscription Management** - Free tier (3 notes) and Pro tier (unlimited notes)
+- **Rich Text Editor** - Powered by TipTap for seamless content creation
+- **Optimistic UI Updates** - Real-time feedback for better user experience
+- **Theme Support** - Dark and light modes with system preference detection
+- **Comprehensive Testing** - Unit, integration, and end-to-end test coverage
+- **Security First** - NextAuth.js authentication, bcrypt password hashing, tenant isolation
 
 ## Tech Stack
 
@@ -98,7 +100,6 @@ DATABASE_URL="postgresql://username:password@host:port/database"
 DIRECT_URL="postgresql://username:password@host:port/database"
 
 # Authentication
-JWT_SECRET="your-jwt-secret-here"
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-nextauth-secret-here"
 
@@ -155,18 +156,17 @@ Use these credentials to explore the application (password: `password` for all):
 
 ### Environment Variables
 
-| Variable               | Description                               | Required |
-| ---------------------- | ----------------------------------------- | -------- |
-| `DATABASE_URL`         | PostgreSQL connection string (pooled)     | ✅ Yes   |
-| `DIRECT_URL`           | Direct PostgreSQL connection (migrations) | ✅ Yes   |
-| `JWT_SECRET`           | Secret key for JWT signing (min 32 chars) | ✅ Yes   |
-| `NEXTAUTH_URL`         | Base URL for NextAuth                     | ✅ Yes   |
-| `NEXTAUTH_SECRET`      | Secret for NextAuth session encryption    | ✅ Yes   |
-| `GITHUB_CLIENT_ID`     | GitHub OAuth client ID                    | ✅ Yes   |
-| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret                | ✅ Yes   |
-| `BREVO_API_KEY`        | Brevo email API key                       | ✅ Yes   |
-| `BREVO_FROM_EMAIL`     | Verified sender email for Brevo           | ✅ Yes   |
-| `BREVO_FROM_NAME`      | Sender name for emails                    | ❌ No    |
+| Variable               | Description                               | Url                                               |
+| ---------------------- | ----------------------------------------- | ------------------------------------------------- |
+| `DATABASE_URL`         | PostgreSQL connection string (pooled)     | [Neon](https://neon.tech)                         |
+| `DIRECT_URL`           | Direct PostgreSQL connection (migrations) | [Neon](https://neon.tech)                         |
+| `NEXTAUTH_URL`         | Base URL of your application              | -                                                 |
+| `NEXTAUTH_SECRET`      | Secret for NextAuth session encryption    | [Generate](https://generate-secret.vercel.app/32) |
+| `GITHUB_CLIENT_ID`     | GitHub OAuth client ID                    | [GitHub](https://github.com/settings/developers)  |
+| `GITHUB_CLIENT_SECRET` | GitHub OAuth client secret                | [GitHub](https://github.com/settings/developers)  |
+| `BREVO_API_KEY`        | Brevo email API key                       | [Brevo](https://www.brevo.com/)                   |
+| `BREVO_FROM_EMAIL`     | Verified sender email for Brevo           | [Brevo](https://www.brevo.com/)                   |
+| `BREVO_FROM_NAME`      | Sender name for emails                    | [Brevo](https://www.brevo.com/)                   |
 
 ### Available Scripts
 
@@ -291,52 +291,51 @@ docs(readme): update installation instructions
 
 ### Authentication
 
-| Endpoint                      | Method   | Description                     | Auth Required |
-| ----------------------------- | -------- | ------------------------------- | ------------- |
-| `/api/auth/login`             | POST     | User login                      | ❌            |
-| `/api/auth/register`          | POST     | User registration               | ❌            |
-| `/api/auth/invite`            | POST     | Invite new user to organization | ✅ Admin only |
-| `/api/auth/forgot-password`   | POST     | Request password reset          | ❌            |
-| `/api/auth/reset-password`    | POST     | Reset password with token       | ❌            |
-| `/api/auth/send-verification` | POST     | Send email verification         | ❌            |
-| `/api/auth/verify-email`      | GET      | Verify email with token         | ❌            |
-| `/api/auth/jwt`               | GET      | Get JWT token for API access    | ✅            |
-| `/api/auth/[...nextauth]`     | GET/POST | NextAuth.js routes              | ❌            |
+| Endpoint                      | Method   | Description                                                |
+| ----------------------------- | -------- | ---------------------------------------------------------- |
+| `/api/auth/login`             | POST     | Authenticate user with email and password, returns session |
+| `/api/auth/register`          | POST     | Register new user account with email verification          |
+| `/api/auth/invite`            | POST     | Invite new user to organization (admin only)               |
+| `/api/auth/forgot-password`   | POST     | Request password reset email                               |
+| `/api/auth/reset-password`    | POST     | Reset password using reset token                           |
+| `/api/auth/send-verification` | POST     | Send email verification link                               |
+| `/api/auth/verify-email`      | GET      | Verify email address using verification token              |
+| `/api/auth/[...nextauth]`     | GET/POST | NextAuth.js session management routes                      |
 
 ### Notes
 
-| Endpoint         | Method | Description     | Auth Required |
-| ---------------- | ------ | --------------- | ------------- |
-| `/api/notes`     | GET    | List all notes  | ✅            |
-| `/api/notes`     | POST   | Create new note | ✅            |
-| `/api/notes/:id` | GET    | Get note by ID  | ✅            |
-| `/api/notes/:id` | PUT    | Update note     | ✅            |
-| `/api/notes/:id` | DELETE | Delete note     | ✅            |
+| Endpoint         | Method | Description                                            |
+| ---------------- | ------ | ------------------------------------------------------ |
+| `/api/notes`     | GET    | Retrieve all notes for the authenticated user's tenant |
+| `/api/notes`     | POST   | Create a new note (enforces free plan limits)          |
+| `/api/notes/:id` | GET    | Retrieve a specific note by ID (tenant-scoped)         |
+| `/api/notes/:id` | PUT    | Update an existing note (tenant-scoped)                |
+| `/api/notes/:id` | DELETE | Delete a note (tenant-scoped)                          |
 
 ### Organization
 
-| Endpoint                   | Method | Description                       | Auth Required |
-| -------------------------- | ------ | --------------------------------- | ------------- |
-| `/api/organization/create` | POST   | Create new organization           | ✅            |
-| `/api/organization/invite` | POST   | Send invites to join organization | ✅            |
+| Endpoint                   | Method | Description                                                |
+| -------------------------- | ------ | ---------------------------------------------------------- |
+| `/api/organization/create` | POST   | Create a new organization and assign current user as admin |
+| `/api/organization/invite` | POST   | Send invitation emails to join the organization            |
 
 ### Tenant
 
-| Endpoint      | Method | Description             | Auth Required |
-| ------------- | ------ | ----------------------- | ------------- |
-| `/api/tenant` | GET    | Get current tenant info | ✅            |
+| Endpoint      | Method | Description                                             |
+| ------------- | ------ | ------------------------------------------------------- |
+| `/api/tenant` | GET    | Get current tenant information including plan and usage |
 
 ### Tenants
 
-| Endpoint                     | Method | Description         | Auth Required |
-| ---------------------------- | ------ | ------------------- | ------------- |
-| `/api/tenants/:slug/upgrade` | POST   | Upgrade to Pro plan | ✅ Admin only |
+| Endpoint                     | Method | Description                             |
+| ---------------------------- | ------ | --------------------------------------- |
+| `/api/tenants/:slug/upgrade` | POST   | Upgrade tenant to Pro plan (admin only) |
 
 ### Health Check
 
-| Endpoint      | Method | Description           | Auth Required |
-| ------------- | ------ | --------------------- | ------------- |
-| `/api/health` | GET    | Service health status | ❌            |
+| Endpoint      | Method | Description                   |
+| ------------- | ------ | ----------------------------- |
+| `/api/health` | GET    | Service health check endpoint |
 
 ## Deployment
 
@@ -355,7 +354,7 @@ git push origin main
 
 3. **Configure environment variables:**
    - Add `DATABASE_URL`
-   - Add `JWT_SECRET`
+   - Add `NEXTAUTH_SECRET`
 
 4. **Deploy:**
    - Vercel will automatically build and deploy
@@ -402,7 +401,7 @@ This application implements **shared schema multi-tenancy**:
 
 ### Security Model
 
-- 🔐 **Authentication:** JWT tokens with 24-hour expiration
+- 🔐 **Authentication:** NextAuth.js with session-based authentication
 - 🔒 **Authorization:** Role-based access control (Admin/Member)
 - 🛡️ **Data Isolation:** Row-level tenant filtering on all queries
 - 🔑 **Password Security:** Bcrypt hashing with salt rounds

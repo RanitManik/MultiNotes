@@ -5,7 +5,6 @@ import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import { NextAuthConfig } from "next-auth";
-import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 const config: NextAuthConfig = {
@@ -187,17 +186,3 @@ export const { handlers, auth, signIn, signOut } = NextAuth(config) as {
   signIn: any;
   signOut: any;
 };
-
-// Custom auth functions for JWT-based auth (used by frontend)
-export interface User {
-  id: string;
-  email: string;
-  role: string;
-  tenantId: string;
-  tenantSlug: string;
-  tenantPlan: string;
-}
-
-export function createToken(payload: User): string {
-  return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: "7d" });
-}

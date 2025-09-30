@@ -291,10 +291,17 @@ docs(readme): update installation instructions
 
 ### Authentication
 
-| Endpoint           | Method | Description     | Auth Required |
-| ------------------ | ------ | --------------- | ------------- |
-| `/api/auth/login`  | POST   | User login      | ❌            |
-| `/api/auth/invite` | POST   | Invite new user | ✅ Admin only |
+| Endpoint                      | Method   | Description                     | Auth Required |
+| ----------------------------- | -------- | ------------------------------- | ------------- |
+| `/api/auth/login`             | POST     | User login                      | ❌            |
+| `/api/auth/register`          | POST     | User registration               | ❌            |
+| `/api/auth/invite`            | POST     | Invite new user to organization | ✅ Admin only |
+| `/api/auth/forgot-password`   | POST     | Request password reset          | ❌            |
+| `/api/auth/reset-password`    | POST     | Reset password with token       | ❌            |
+| `/api/auth/send-verification` | POST     | Send email verification         | ❌            |
+| `/api/auth/verify-email`      | GET      | Verify email with token         | ❌            |
+| `/api/auth/jwt`               | GET      | Get JWT token for API access    | ✅            |
+| `/api/auth/[...nextauth]`     | GET/POST | NextAuth.js routes              | ❌            |
 
 ### Notes
 
@@ -305,6 +312,19 @@ docs(readme): update installation instructions
 | `/api/notes/:id` | GET    | Get note by ID  | ✅            |
 | `/api/notes/:id` | PUT    | Update note     | ✅            |
 | `/api/notes/:id` | DELETE | Delete note     | ✅            |
+
+### Organization
+
+| Endpoint                   | Method | Description                       | Auth Required |
+| -------------------------- | ------ | --------------------------------- | ------------- |
+| `/api/organization/create` | POST   | Create new organization           | ✅            |
+| `/api/organization/invite` | POST   | Send invites to join organization | ✅            |
+
+### Tenant
+
+| Endpoint      | Method | Description             | Auth Required |
+| ------------- | ------ | ----------------------- | ------------- |
+| `/api/tenant` | GET    | Get current tenant info | ✅            |
 
 ### Tenants
 
@@ -364,7 +384,7 @@ This application implements **shared schema multi-tenancy**:
 ┌─────────────────────────────────────┐
 │         PostgreSQL Database         │
 ├─────────────────────────────────────┤
-│  Tables (with tenant_id column)    │
+│  Tables (with tenant_id column)     │
 │  ├── tenants                        │
 │  ├── users (tenant_id FK)           │
 │  ├── notes (tenant_id FK)           │
@@ -406,4 +426,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<div align="center">Built with ❤️ for learning and exploration</div>
+Built with ❤️ for learning and exploration

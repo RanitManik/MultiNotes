@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -16,7 +16,7 @@ export async function GET(
     const note = await prisma.note.findFirst({
       where: {
         id,
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
       },
       include: { author: { select: { email: true } } },
     });
@@ -39,8 +39,8 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -58,7 +58,7 @@ export async function PUT(
     const note = await prisma.note.findFirst({
       where: {
         id,
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
       },
     });
 
@@ -89,8 +89,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -99,7 +99,7 @@ export async function DELETE(
     const note = await prisma.note.findFirst({
       where: {
         id,
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
       },
     });
 

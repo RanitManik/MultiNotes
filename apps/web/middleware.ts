@@ -1,12 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { getToken } from "next-auth/jwt";
+import type { Session } from "next-auth";
+import { auth } from "@/lib/auth";
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+type ExtendedUser = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  image: string | null;
+  tenantId: string | null;
+  tenantSlug: string | null;
+  tenantPlan: string | null;
+  role: string;
+};
 
-  // 1. Handle API CORS preflight requests
-  if (pathname.startsWith("/api/") && request.method === "OPTIONS") {
+export default auth((req: NextRequest & { auth: Session | null }) => {
+  const { pathname } = req.nextUrl;
+
+  // 1. Handle API CORS preflight requests (no change needed here)
+  if (pathname.startsWith("/api/") && req.method === "OPTIONS") {
+    // ... your CORS preflight logic
     const headers = new Headers();
     headers.set("Access-Control-Allow-Origin", "*");
     headers.set(
@@ -17,30 +30,27 @@ export async function middleware(request: NextRequest) {
     return new NextResponse(null, { status: 204, headers });
   }
 
-  // 2. Securely get the session token
-  // The secret is read from the NEXTAUTH_SECRET environment variable.
-  const session = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
+  // 2. Get the session from req.auth
+  const session = req.auth; // <-- 2. Use req.auth instead of await auth()
 
   // 3. Define page types for clarity
   const isAuthPage = pathname.startsWith("/auth/");
   const isOrgSetupPage = pathname.startsWith("/organization/setup");
+  const isRootPage = pathname === "/";
 
   // 4. Redirect logic for authenticated users
   if (session) {
-    const hasTenant = Boolean(session.tenantId);
+    // 3. Access user properties via session.user
+    const hasTenant = Boolean((session.user as ExtendedUser)?.tenantId);
 
-    // If user is on an auth page (e.g., login/register), redirect them away
-    if (isAuthPage) {
-      const redirectUrl = hasTenant ? "/notes" : "/organization/setup";
-      return NextResponse.redirect(new URL(redirectUrl, request.url));
+    // If user is on an auth page or root page, redirect to /notes
+    if (isAuthPage || isRootPage) {
+      return NextResponse.redirect(new URL("/notes", req.url));
     }
 
     // If user has no tenant, force them to the setup page
     if (!hasTenant && !isOrgSetupPage) {
-      return NextResponse.redirect(new URL("/organization/setup", request.url));
+      return NextResponse.redirect(new URL("/organization/setup", req.url));
     }
   }
 
@@ -48,7 +58,7 @@ export async function middleware(request: NextRequest) {
   // For now, we allow access, and client-side logic can handle it.
   // Example:
   // if (!session && !isAuthPage && pathname !== "/") {
-  //   return NextResponse.redirect(new URL("/auth/login", request.url));
+  //   return NextResponse.redirect(new URL("/auth/login", req.url));
   // }
 
   // 6. Add CORS headers to all other API responses
@@ -67,10 +77,11 @@ export async function middleware(request: NextRequest) {
   }
 
   return NextResponse.next();
-}
+});
 
 // Keep your existing config
 export const config = {
+  runtime: "nodejs",
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
@@ -82,3 +93,5 @@ export const config = {
     "/((?!api/auth|_next/static|_next/image|favicon.ico).*)",
   ],
 };
+
+export const runtime = "nodejs";

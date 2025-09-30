@@ -1,0 +1,102 @@
+import { cn } from "@workspace/ui/lib/utils";
+import { Button } from "@workspace/ui/components/button";
+import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
+import { Alert, AlertDescription } from "@workspace/ui/components/alert";
+import { AlertTriangle, CheckCircle } from "lucide-react";
+
+export function ResetPasswordForm({
+  className,
+  onSubmit,
+  password,
+  confirmPassword,
+  onPasswordChange,
+  onConfirmPasswordChange,
+  loading = false,
+  error,
+  success,
+  onBackToLogin,
+  ...props
+}: React.ComponentProps<"form"> & {
+  password?: string;
+  confirmPassword?: string;
+  onPasswordChange?: (value: string) => void;
+  onConfirmPasswordChange?: (value: string) => void;
+  loading?: boolean;
+  error?: string;
+  success?: string;
+  onBackToLogin?: () => void;
+}) {
+  return (
+    <form
+      className={cn("flex flex-col gap-6", className)}
+      onSubmit={onSubmit}
+      {...props}
+    >
+      <div className="flex flex-col items-center gap-2 text-center">
+        <img
+          src="/logo.svg"
+          alt="MultiNotes Logo"
+          className="mx-auto h-16 w-16"
+        />
+        <h1 className="text-2xl font-bold">Set new password</h1>
+        <p className="text-muted-foreground text-balance text-sm">
+          Enter your new password below
+        </p>
+      </div>
+      <div className="grid gap-6">
+        <div className="grid gap-3">
+          <Label htmlFor="password">New Password</Label>
+          <Input
+            id="password"
+            type="password"
+            placeholder="Enter your new password"
+            value={password}
+            onChange={e => onPasswordChange?.(e.target.value)}
+            required
+            disabled={loading}
+            minLength={8}
+          />
+        </div>
+        <div className="grid gap-3">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder="Confirm your new password"
+            value={confirmPassword}
+            onChange={e => onConfirmPasswordChange?.(e.target.value)}
+            required
+            disabled={loading}
+            minLength={8}
+          />
+        </div>
+        {error && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        {success && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>{success}</AlertDescription>
+          </Alert>
+        )}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Resetting..." : "Reset Password"}
+        </Button>
+      </div>
+      <div className="text-center text-sm">
+        Remember your password?{" "}
+        <button
+          type="button"
+          onClick={onBackToLogin}
+          className="cursor-pointer underline underline-offset-4 hover:underline"
+        >
+          Back to login
+        </button>
+      </div>
+    </form>
+  );
+}

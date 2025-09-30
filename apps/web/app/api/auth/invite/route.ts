@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 function generateRandomPassword(): string {
   const chars =
@@ -15,12 +15,12 @@ function generateRandomPassword(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = requireAuth(request);
-    if (!user) {
+    const session = await auth();
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== "admin") {
+    if (session.user.role !== "admin") {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         email,
         password_hash: hashedPassword,
         role: role as "admin" | "member",
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
       },
       select: {
         id: true,

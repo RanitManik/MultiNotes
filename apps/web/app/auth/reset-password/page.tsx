@@ -2,18 +2,14 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { AlertTriangle } from "lucide-react";
+import { ResetPasswordForm } from "@workspace/ui/components/reset-password-form";
 
-function ResetPasswordForm() {
+function ResetPasswordFormComponent() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState("");
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -45,6 +41,7 @@ function ResetPasswordForm() {
 
     setLoading(true);
     setError("");
+    setSuccess("");
 
     try {
       const response = await fetch("/api/auth/reset-password", {
@@ -58,7 +55,9 @@ function ResetPasswordForm() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess(true);
+        setSuccess(
+          "Password reset successful! You will be redirected to the login page."
+        );
         setTimeout(() => {
           router.push("/auth/login?reset=success");
         }, 2000);
@@ -72,70 +71,20 @@ function ResetPasswordForm() {
     }
   };
 
-  if (success) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-6 shadow-lg">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold text-green-600">
-              Password Reset Successful!
-            </h1>
-            <p className="text-muted-foreground">
-              Your password has been reset. You will be redirected to the login
-              page.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-6 shadow-lg">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Reset Your Password</h1>
-          <p className="text-muted-foreground">Enter your new password below</p>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="password">New Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="Enter your new password"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={e => setConfirmPassword(e.target.value)}
-              placeholder="Confirm your new password"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          {error && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Resetting..." : "Reset Password"}
-          </Button>
-        </form>
+    <div className="bg-background flex min-h-screen items-center justify-center p-4">
+      <div className="animate-fade-up animate-duration-250 w-full max-w-md">
+        <ResetPasswordForm
+          password={password}
+          confirmPassword={confirmPassword}
+          onPasswordChange={setPassword}
+          onConfirmPasswordChange={setConfirmPassword}
+          onSubmit={handleSubmit}
+          loading={loading}
+          error={error}
+          success={success}
+          onBackToLogin={() => router.push("/auth/login")}
+        />
       </div>
     </div>
   );
@@ -145,17 +94,24 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
-          <div className="w-full max-w-md space-y-6 rounded-lg bg-white p-6 shadow-lg">
-            <div className="text-center">
-              <h1 className="text-2xl font-bold">Loading...</h1>
-              <p className="text-muted-foreground">Please wait</p>
+        <div className="bg-background flex min-h-screen items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-2 text-center">
+                <img
+                  src="/logo.svg"
+                  alt="MultiNotes Logo"
+                  className="mx-auto h-16 w-16"
+                />
+                <h1 className="text-2xl font-bold">Loading...</h1>
+                <p className="text-muted-foreground">Please wait</p>
+              </div>
             </div>
           </div>
         </div>
       }
     >
-      <ResetPasswordForm />
+      <ResetPasswordFormComponent />
     </Suspense>
   );
 }

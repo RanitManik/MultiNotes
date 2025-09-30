@@ -3,8 +3,7 @@ import * as appHandler from "../app/api/tenants/[slug]/upgrade/route";
 
 // Mock auth
 jest.mock("@/lib/auth", () => ({
-  requireAuth: jest.fn(),
-  createToken: jest.fn(),
+  auth: jest.fn(),
 }));
 
 // Mock prisma
@@ -20,7 +19,7 @@ jest.mock("@/lib/db", () => ({
   },
 }));
 
-import { requireAuth, createToken } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 describe("Tenant Upgrade API", () => {
@@ -29,7 +28,7 @@ describe("Tenant Upgrade API", () => {
   });
 
   it("should return 401 for unauthenticated user", async () => {
-    (requireAuth as jest.Mock).mockReturnValue(null);
+    (auth as jest.Mock).mockResolvedValue(null);
 
     await testApiHandler({
       appHandler,
@@ -44,10 +43,12 @@ describe("Tenant Upgrade API", () => {
   });
 
   it("should return 403 for non-admin user", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "member",
-      tenantSlug: "test-tenant",
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "member",
+        tenantSlug: "test-tenant",
+      },
     });
 
     await testApiHandler({
@@ -63,10 +64,12 @@ describe("Tenant Upgrade API", () => {
   });
 
   it("should return 403 for tenant mismatch", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantSlug: "other-tenant",
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantSlug: "other-tenant",
+      },
     });
 
     await testApiHandler({
@@ -82,10 +85,12 @@ describe("Tenant Upgrade API", () => {
   });
 
   it("should return 404 for tenant not found", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantSlug: "test-tenant",
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantSlug: "test-tenant",
+      },
     });
     (prisma.tenant.findUnique as jest.Mock).mockResolvedValue(null);
 
@@ -102,10 +107,12 @@ describe("Tenant Upgrade API", () => {
   });
 
   it("should upgrade tenant successfully", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantSlug: "test-tenant",
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantSlug: "test-tenant",
+      },
     });
     (prisma.tenant.findUnique as jest.Mock)
       .mockResolvedValueOnce({ id: 1, slug: "test-tenant", plan: "free" })
@@ -114,14 +121,6 @@ describe("Tenant Upgrade API", () => {
         name: "Test Tenant",
         plan: "pro",
       });
-    (prisma.user.findUnique as jest.Mock).mockResolvedValue({
-      id: 1,
-      email: "admin@example.com",
-      role: "admin",
-      tenant_id: 1,
-      tenant: { slug: "test-tenant", plan: "pro" },
-    });
-    (createToken as jest.Mock).mockReturnValue("new-jwt-token");
 
     await testApiHandler({
       appHandler,

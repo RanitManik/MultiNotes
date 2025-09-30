@@ -3,7 +3,7 @@ import * as appHandler from "../app/api/auth/invite/route";
 
 // Mock auth
 jest.mock("@/lib/auth", () => ({
-  requireAuth: jest.fn(),
+  auth: jest.fn(),
 }));
 
 // Mock prisma
@@ -16,7 +16,7 @@ jest.mock("@/lib/db", () => ({
   },
 }));
 
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 describe("Invite API", () => {
@@ -25,7 +25,7 @@ describe("Invite API", () => {
   });
 
   it("should return 401 for unauthenticated user", async () => {
-    (requireAuth as jest.Mock).mockReturnValue(null);
+    (auth as jest.Mock).mockResolvedValue(null);
 
     await testApiHandler({
       appHandler,
@@ -42,10 +42,12 @@ describe("Invite API", () => {
   });
 
   it("should return 403 for non-admin user", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "member",
-      tenantId: 1,
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "member",
+        tenantId: "1",
+      },
     });
 
     await testApiHandler({
@@ -63,10 +65,12 @@ describe("Invite API", () => {
   });
 
   it("should return 400 for missing email", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantId: 1,
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantId: "1",
+      },
     });
 
     await testApiHandler({
@@ -84,10 +88,12 @@ describe("Invite API", () => {
   });
 
   it("should return 400 for invalid role", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantId: 1,
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantId: "1",
+      },
     });
 
     await testApiHandler({
@@ -105,10 +111,12 @@ describe("Invite API", () => {
   });
 
   it("should return 409 for existing user", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantId: 1,
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantId: "1",
+      },
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({
       id: 2,
@@ -130,10 +138,12 @@ describe("Invite API", () => {
   });
 
   it("should create user successfully", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantId: 1,
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantId: "1",
+      },
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.user.create as jest.Mock).mockResolvedValue({
@@ -165,10 +175,12 @@ describe("Invite API", () => {
   });
 
   it("should create user with custom password", async () => {
-    (requireAuth as jest.Mock).mockReturnValue({
-      id: 1,
-      role: "admin",
-      tenantId: 1,
+    (auth as jest.Mock).mockResolvedValue({
+      user: {
+        id: "1",
+        role: "admin",
+        tenantId: "1",
+      },
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
     (prisma.user.create as jest.Mock).mockResolvedValue({

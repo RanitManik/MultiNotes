@@ -289,16 +289,14 @@ docs(readme): update installation instructions
 
 ### Authentication
 
-| Endpoint                      | Method   | Description                                                |
-| ----------------------------- | -------- | ---------------------------------------------------------- |
-| `/api/auth/login`             | POST     | Authenticate user with email and password, returns session |
-| `/api/auth/register`          | POST     | Register new user account with email verification          |
-| `/api/auth/invite`            | POST     | Invite new user to organization (admin only)               |
-| `/api/auth/forgot-password`   | POST     | Request password reset email                               |
-| `/api/auth/reset-password`    | POST     | Reset password using reset token                           |
-| `/api/auth/send-verification` | POST     | Send email verification link                               |
-| `/api/auth/verify-email`      | GET      | Verify email address using verification token              |
-| `/api/auth/[...nextauth]`     | GET/POST | NextAuth.js session management routes                      |
+| Endpoint                      | Method   | Description                                                   |
+| ----------------------------- | -------- | ------------------------------------------------------------- |
+| `/api/auth/register`          | POST     | Register new user account with email verification             |
+| `/api/auth/forgot-password`   | POST     | Request password reset email                                  |
+| `/api/auth/reset-password`    | POST     | Reset password using reset token                              |
+| `/api/auth/send-verification` | POST     | Send email verification link                                  |
+| `/api/auth/verify-email`      | GET      | Verify email address using verification token                 |
+| `/api/auth/[...nextauth]`     | GET/POST | NextAuth.js authentication (login, OAuth, session management) |
 
 ### Notes
 

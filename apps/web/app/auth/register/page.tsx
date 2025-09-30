@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RegisterForm } from "@workspace/ui/components/register-form";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 export default function RegisterPage() {
   const [registerEmail, setRegisterEmail] = useState("");
@@ -17,6 +17,21 @@ export default function RegisterPage() {
     null
   );
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Handle redirect after successful registration and login
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (status === "authenticated" && session) {
+      const hasTenant = (session.user as any)?.tenantId;
+      if (hasTenant) {
+        router.push("/notes");
+      } else {
+        router.push("/organization/setup");
+      }
+    }
+  }, [session, status, router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +54,24 @@ export default function RegisterPage() {
 
       if (response.ok) {
         setSuccess(
-          data.message ||
-            "Registration successful! Please check your email to verify your account."
+          data.message || "Registration successful! You are now logged in."
         );
         setError("");
+
+        // Automatically log the user in after successful registration
+        const signInResult = await signIn("credentials", {
+          email: registerEmail,
+          password: registerPassword,
+          redirect: false,
+        });
+
+        if (signInResult?.ok) {
+          // Redirect will be handled by the useSession effect
+        } else {
+          setError(
+            "Registration successful but login failed. Please try logging in manually."
+          );
+        }
       } else {
         setError(data.error || "Registration failed");
         setSuccess("");

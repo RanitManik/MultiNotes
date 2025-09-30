@@ -22,9 +22,11 @@ jest.mock("@/lib/db", () => ({
     user: {
       findUnique: jest.fn(),
       create: jest.fn(),
+      delete: jest.fn(),
     },
     verificationToken: {
       create: jest.fn(),
+      deleteMany: jest.fn(),
     },
   },
 }));
@@ -135,6 +137,8 @@ describe("Register API", () => {
     });
     (prisma.verificationToken.create as jest.Mock).mockResolvedValue({});
     (sendVerificationEmail as jest.Mock).mockResolvedValue({ success: false });
+    (prisma.user.delete as jest.Mock).mockResolvedValue({});
+    (prisma.verificationToken.deleteMany as jest.Mock).mockResolvedValue({});
 
     await testApiHandler({
       appHandler,

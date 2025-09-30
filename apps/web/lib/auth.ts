@@ -21,6 +21,9 @@ const config: NextAuthConfig = {
       });
     },
   },
+  session: {
+    strategy: "jwt",
+  },
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
@@ -139,41 +142,35 @@ const config: NextAuthConfig = {
         return true;
       }
     },
-    async session({ session, user }) {
-      // Build a sanitized session.user object so we never leak DB-only fields
-      // (for example `password_hash`). Only expose fields safe for the client.
-      const safeUser: any = {
-        id: user.id,
-        name: user.name ?? session.user?.name ?? null,
-        email: user.email ?? session.user?.email ?? null,
-        image: user.image ?? session.user?.image ?? null,
-      };
-
-      // Ensure tenant info is included and present on the session
-      const userWithTenant = await prisma.user.findUnique({
-        where: { id: user.id },
-        include: { tenant: true },
-      });
-      if (userWithTenant?.tenant) {
-        safeUser.tenantId = userWithTenant.tenant_id;
-        safeUser.tenantSlug = userWithTenant.tenant.slug;
-        safeUser.tenantPlan = userWithTenant.tenant.plan;
-      } else {
-        // User doesn't have a tenant yet - will be handled in middleware
-        safeUser.tenantId = null;
-        safeUser.tenantSlug = null;
-        safeUser.tenantPlan = null;
+    async session({ session, token }) {
+      // With JWT sessions, token contains the user data
+      if (token) {
+        session.user = {
+          id: token.id as string,
+          name: token.name || null,
+          email: token.email || null,
+          image: token.picture || null,
+          tenantId: (token as any).tenantId || null,
+          tenantSlug: (token as any).tenantSlug || null,
+          tenantPlan: (token as any).tenantPlan || null,
+          role: (token as any).role || null,
+        } as any;
       }
-
-      // Optionally expose role (useful client-side) but avoid any secrets
-      if ((user as any).role) safeUser.role = (user as any).role;
-
-      session.user = safeUser;
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.picture = user.image;
+        // Store additional user data from credentials provider
+        if ((user as any).tenantId !== undefined) {
+          (token as any).tenantId = (user as any).tenantId;
+          (token as any).tenantSlug = (user as any).tenantSlug;
+          (token as any).tenantPlan = (user as any).tenantPlan;
+          (token as any).role = (user as any).role;
+        }
       }
       return token;
     },

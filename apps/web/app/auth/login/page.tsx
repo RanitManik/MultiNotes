@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@workspace/ui/components/login-form";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +14,21 @@ export default function LoginPage() {
     null
   );
   const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Handle redirect after successful login
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (status === "authenticated" && session) {
+      const hasTenant = (session.user as any)?.tenantId;
+      if (hasTenant) {
+        router.push("/notes");
+      } else {
+        router.push("/organization/setup");
+      }
+    }
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,26 +36,30 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        if (data.redirect) {
-          router.push(data.redirect);
-        } else {
-          router.push("/notes");
-        }
+      if (result?.error) {
+        setError(
+          result.error === "CredentialsSignin"
+            ? "Invalid email or password"
+            : result.error
+        );
+        setLoading(false);
+      } else if (result?.ok) {
+        // Force a session refresh
+        await router.refresh();
+        // The useEffect will handle the redirect when session updates
       } else {
-        setError(data.error || "Login failed");
+        setError("Sign in failed");
+        setLoading(false);
       }
-    } catch {
+    } catch (error) {
+      console.error("Sign in error:", error);
       setError("Network error");
-    } finally {
       setLoading(false);
     }
   };

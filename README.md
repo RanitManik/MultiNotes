@@ -11,6 +11,7 @@ A production-ready multi-tenant notes application with role-based access control
 [![Dependabot Updates](https://github.com/RanitManik/MultiNotes/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/dependabot/dependabot-updates)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.4.1-blue)](https://pnpm.io/)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit-blue)](http://multinotes.5dev.in)
 
 ## 📑 Table of Contents
 

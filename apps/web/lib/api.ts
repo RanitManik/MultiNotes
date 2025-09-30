@@ -21,9 +21,14 @@ export interface Tenant {
 }
 
 export interface User {
-  role: "admin" | "member";
-  tenantSlug: string;
+  id: string;
+  name?: string | null;
+  email: string;
+  image?: string | null;
+  tenantId: string | null;
+  tenantSlug: string | null;
   tenantPlan: "free" | "pro";
+  role: "admin" | "member";
 }
 
 // API base URL and auth helpers

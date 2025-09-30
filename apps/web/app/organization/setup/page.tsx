@@ -31,7 +31,7 @@ export default function OrganizationSetupPage() {
   const [error, setError] = useState("");
   const [checkingAuth, setCheckingAuth] = useState(true);
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -78,6 +78,8 @@ export default function OrganizationSetupPage() {
       });
 
       if (response.ok) {
+        // Update session with new tenant data
+        await update();
         setState("success");
       } else {
         const data = await response.json();

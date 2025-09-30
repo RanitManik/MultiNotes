@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { sendVerificationEmail } from "@/lib/email";
+import { sendOrganizationInviteEmail } from "@/lib/email";
 import { randomBytes } from "crypto";
 
 export async function POST(request: NextRequest) {
@@ -70,8 +70,16 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      // For new users, we would need to create an invitation system
-      // For now, just mark as invited (we'll implement proper invites later)
+      // For new users, send invitation email
+      const inviteUrl = `${process.env.NEXTAUTH_URL}/auth/register?invite=${user.tenant.slug}`;
+      await sendOrganizationInviteEmail(
+        trimmedEmail,
+        user.first_name
+          ? `${user.first_name} ${user.last_name || ""}`.trim()
+          : user.email,
+        user.tenant.name,
+        inviteUrl
+      );
       results.push({ email: trimmedEmail, status: "invited" });
     }
 

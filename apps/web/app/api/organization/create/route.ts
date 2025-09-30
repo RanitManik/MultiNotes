@@ -61,12 +61,13 @@ export async function POST(request: NextRequest) {
     });
 
     // Update user with tenant
-    await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {
         tenant_id: tenant.id,
         role: "admin",
       },
+      include: { tenant: true },
     });
 
     return NextResponse.json({
@@ -76,6 +77,13 @@ export async function POST(request: NextRequest) {
         slug: tenant.slug,
         name: tenant.name,
         plan: tenant.plan,
+      },
+      user: {
+        id: updatedUser.id,
+        tenantId: updatedUser.tenant_id,
+        tenantSlug: updatedUser.tenant?.slug,
+        tenantPlan: updatedUser.tenant?.plan,
+        role: updatedUser.role,
       },
     });
   } catch (error) {

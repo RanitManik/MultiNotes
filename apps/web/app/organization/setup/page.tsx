@@ -78,8 +78,16 @@ export default function OrganizationSetupPage() {
       });
 
       if (response.ok) {
-        // Update session with new tenant data
-        await update();
+        const data = await response.json();
+        // Update session with the returned user data
+        await update({
+          user: {
+            tenantId: data.user.tenantId,
+            tenantSlug: data.user.tenantSlug,
+            tenantPlan: data.user.tenantPlan,
+            role: data.user.role,
+          },
+        });
         setState("success");
       } else {
         const data = await response.json();

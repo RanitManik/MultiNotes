@@ -42,6 +42,9 @@
     "db:setup": {
       "dependsOn": ["db:migrate:prod", "db:seed"]
     },
+    "db:studio": {
+      "cache": false
+    },
     "lint": {
       "dependsOn": ["^lint"]
     },

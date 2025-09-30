@@ -16,6 +16,7 @@
     "db:push": "turbo db:migrate:prod",
     "db:seed": "turbo db:seed",
     "db:setup": "turbo db:setup",
+    "db:studio": "turbo db:studio",
     "typecheck": "turbo typecheck",
     "prepare": "husky",
     "commit": "cz"

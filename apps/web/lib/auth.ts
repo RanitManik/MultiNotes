@@ -163,7 +163,7 @@ const config: NextAuthConfig = {
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id;
         token.name = user.name;
@@ -177,6 +177,22 @@ const config: NextAuthConfig = {
           (token as any).role = (user as any).role;
         }
       }
+
+      // Refresh tenant data from database when session is updated
+      if (trigger === "update" && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          include: { tenant: true },
+        });
+
+        if (dbUser) {
+          (token as any).tenantId = dbUser.tenant_id;
+          (token as any).tenantSlug = dbUser.tenant?.slug;
+          (token as any).tenantPlan = dbUser.tenant?.plan;
+          (token as any).role = dbUser.role;
+        }
+      }
+
       return token;
     },
   },

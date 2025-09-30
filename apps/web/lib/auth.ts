@@ -58,8 +58,16 @@ const config: NextAuthConfig = {
           include: { tenant: true },
         });
 
-        if (!user || !user.password_hash) {
+        if (!user) {
           return null;
+        }
+
+        if (!user.password_hash) {
+          return null;
+        }
+
+        if (!user.emailVerified) {
+          throw new Error("EmailNotVerified");
         }
 
         const isValidPassword = await bcrypt.compare(
@@ -70,9 +78,6 @@ const config: NextAuthConfig = {
         if (!isValidPassword) {
           return null;
         }
-
-        // Check if user has a tenant (but don't block login)
-        // Middleware will handle redirect if no tenant
 
         return {
           id: user.id,

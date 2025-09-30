@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Run register tests",
+      "type": "shell",
+      "command": "cd /Users/ranitmanik/code/MultiNotes/apps/web && npm test -- __tests__/register.test.ts"
+    }
+  ]
+}

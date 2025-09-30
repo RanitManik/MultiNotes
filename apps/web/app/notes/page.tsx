@@ -69,6 +69,14 @@ import {
 } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditorContainer } from "@/components/note-editor-container";
+import {
+  createNoteSchema,
+  updateNoteSchema,
+  inviteUserSchema,
+  type CreateNoteInput,
+  type UpdateNoteInput,
+  type InviteUserInput,
+} from "@/lib/validations";
 
 // Utility functions
 function generateRandomPassword(): string {
@@ -281,7 +289,9 @@ function NotesDashboardContent() {
         toast.error("Upgrade to Pro to create more notes.");
         return;
       }
-      const noteData = {
+
+      // Validate form data
+      const validationResult = createNoteSchema.safeParse({
         title: newTitle,
         content: {
           type: "doc",
@@ -297,6 +307,19 @@ function NotesDashboardContent() {
             },
           ],
         },
+      });
+
+      if (!validationResult.success) {
+        setError(
+          validationResult.error.issues?.[0]?.message || "Validation failed"
+        );
+        return;
+      }
+
+      const validatedData = validationResult.data;
+      const noteData = {
+        title: validatedData.title,
+        content: validatedData.content,
       };
 
       // Close dialog and clear form immediately for optimistic UX
@@ -354,7 +377,25 @@ function NotesDashboardContent() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (!editingNote) return;
-      const noteData = { title: editTitle, content: editingNote.content };
+
+      // Validate form data
+      const validationResult = updateNoteSchema.safeParse({
+        title: editTitle,
+        content: editingNote.content,
+      });
+
+      if (!validationResult.success) {
+        setError(
+          validationResult.error.issues?.[0]?.message || "Validation failed"
+        );
+        return;
+      }
+
+      const validatedData = validationResult.data;
+      const noteData = {
+        title: validatedData.title,
+        content: validatedData.content,
+      };
 
       // Close dialog and clear form immediately for optimistic UX
       setShowEditForm(false);
@@ -427,10 +468,26 @@ function NotesDashboardContent() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setInviteError(""); // Clear any previous error
+
+      // Validate form data
+      const validationResult = inviteUserSchema.safeParse({
+        email: inviteEmail,
+        role: inviteRole,
+      });
+
+      if (!validationResult.success) {
+        setInviteError(
+          validationResult.error.issues?.[0]?.message || "Validation failed"
+        );
+        return;
+      }
+
+      const validatedData = validationResult.data;
+
       try {
         const result = await inviteUserMutation.mutateAsync({
-          email: inviteEmail,
-          role: inviteRole,
+          email: validatedData.email,
+          role: validatedData.role,
           password: invitePassword || undefined,
         });
 

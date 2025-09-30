@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "@workspace/ui/components/login-form";
 import { signIn, useSession } from "next-auth/react";
+import { loginSchema, type LoginInput } from "@/lib/validations";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -35,19 +36,35 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
+    // Validate form data
+    const validationResult = loginSchema.safeParse({ email, password });
+    if (!validationResult.success) {
+      setError(
+        validationResult.error.issues?.[0]?.message || "Validation failed"
+      );
+      setLoading(false);
+      return;
+    }
+
+    const validatedData = validationResult.data;
+
     try {
       const result = await signIn("credentials", {
-        email,
-        password,
+        email: validatedData.email,
+        password: validatedData.password,
         redirect: false,
       });
 
       if (result?.error) {
-        setError(
-          result.error === "CredentialsSignin"
-            ? "Invalid email or password"
-            : result.error
-        );
+        if (result.error === "EmailNotVerified") {
+          setError(
+            "Please verify your email before signing in. Check your inbox for the verification link."
+          );
+        } else if (result.error === "CredentialsSignin") {
+          setError("Invalid email or password");
+        } else {
+          setError(result.error);
+        }
         setLoading(false);
       } else if (result?.ok) {
         // Force a session refresh

@@ -14,6 +14,7 @@ import {
   ArrowRight,
   AlertTriangle,
 } from "lucide-react";
+import { organizationSchema, type OrganizationInput } from "@/lib/validations";
 const Confetti = React.lazy(() => import("react-confetti"));
 
 type SetupState = "form" | "success";
@@ -47,10 +48,19 @@ export default function OrganizationSetupPage() {
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!organizationName.trim()) {
-      setError("Organization name is required");
+    // Validate form data
+    const validationResult = organizationSchema.safeParse({
+      name: organizationName.trim(),
+    });
+
+    if (!validationResult.success) {
+      setError(
+        validationResult.error.issues?.[0]?.message || "Validation failed"
+      );
       return;
     }
+
+    const validatedData = validationResult.data;
 
     setLoading(true);
     setError("");
@@ -59,9 +69,7 @@ export default function OrganizationSetupPage() {
       const response = await fetch("/api/organization/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: organizationName.trim(),
-        }),
+        body: JSON.stringify(validatedData),
       });
 
       if (response.ok) {

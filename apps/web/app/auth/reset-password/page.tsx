@@ -3,6 +3,10 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ResetPasswordForm } from "@workspace/ui/components/reset-password-form";
+import {
+  resetPasswordSchema,
+  type ResetPasswordInput,
+} from "@/lib/validations";
 
 function ResetPasswordFormComponent() {
   const [password, setPassword] = useState("");
@@ -29,15 +33,21 @@ function ResetPasswordFormComponent() {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+    // Validate form data
+    const validationResult = resetPasswordSchema.safeParse({
+      password,
+      confirmPassword,
+      token,
+    });
+
+    if (!validationResult.success) {
+      setError(
+        validationResult.error.issues?.[0]?.message || "Validation failed"
+      );
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
-      return;
-    }
+    const validatedData = validationResult.data;
 
     setLoading(true);
     setError("");
@@ -49,7 +59,7 @@ function ResetPasswordFormComponent() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ token, password }),
+        body: JSON.stringify(validatedData),
       });
 
       const data = await response.json();

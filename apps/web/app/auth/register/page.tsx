@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { RegisterForm } from "@workspace/ui/components/register-form";
 import { signIn, useSession } from "next-auth/react";
+import { registerSchema, type RegisterInput } from "@/lib/validations";
 
 export default function RegisterPage() {
   const [registerEmail, setRegisterEmail] = useState("");
@@ -38,40 +39,40 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
+    // Validate form data
+    const validationResult = registerSchema.safeParse({
+      email: registerEmail,
+      password: registerPassword,
+      firstName,
+      lastName: lastName || undefined,
+    });
+
+    if (!validationResult.success) {
+      setError(
+        validationResult.error.issues?.[0]?.message || "Validation failed"
+      );
+      setLoading(false);
+      return;
+    }
+
+    const validatedData = validationResult.data;
+
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: registerEmail,
-          password: registerPassword,
-          firstName: firstName.trim(),
-          lastName: lastName.trim(),
-        }),
+        body: JSON.stringify(validatedData),
       });
 
       const data = await response.json();
 
       if (response.ok) {
         setSuccess(
-          data.message || "Registration successful! You are now logged in."
+          data.message ||
+            "Registration successful! Please check your email to verify your account."
         );
         setError("");
-
-        // Automatically log the user in after successful registration
-        const signInResult = await signIn("credentials", {
-          email: registerEmail,
-          password: registerPassword,
-          redirect: false,
-        });
-
-        if (signInResult?.ok) {
-          // Redirect will be handled by the useSession effect
-        } else {
-          setError(
-            "Registration successful but login failed. Please try logging in manually."
-          );
-        }
+        // Don't auto-login - user needs to verify email first
       } else {
         setError(data.error || "Registration failed");
         setSuccess("");

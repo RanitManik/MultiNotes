@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ForgotPasswordForm } from "@workspace/ui/components/forgot-password-form";
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordInput,
+} from "@/lib/validations";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -17,11 +21,23 @@ export default function ForgotPasswordPage() {
     setError("");
     setSuccess("");
 
+    // Validate form data
+    const validationResult = forgotPasswordSchema.safeParse({ email });
+    if (!validationResult.success) {
+      setError(
+        validationResult.error.issues?.[0]?.message || "Validation failed"
+      );
+      setLoading(false);
+      return;
+    }
+
+    const validatedData = validationResult.data;
+
     try {
       const response = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify(validatedData),
       });
 
       const data = await response.json();

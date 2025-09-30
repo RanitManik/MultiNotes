@@ -51,7 +51,7 @@ describe("Register API", () => {
         });
         expect(res.status).toBe(400);
         const json = await res.json();
-        expect(json.error).toBe("Email and password required");
+        expect(json.error).toBe("Validation failed");
       },
     });
   });
@@ -66,7 +66,7 @@ describe("Register API", () => {
         });
         expect(res.status).toBe(400);
         const json = await res.json();
-        expect(json.error).toBe("Email and password required");
+        expect(json.error).toBe("Validation failed");
       },
     });
   });
@@ -84,7 +84,7 @@ describe("Register API", () => {
         });
         expect(res.status).toBe(400);
         const json = await res.json();
-        expect(json.error).toBe("Invalid email format");
+        expect(json.error).toBe("Validation failed");
       },
     });
   });
@@ -99,7 +99,7 @@ describe("Register API", () => {
         });
         expect(res.status).toBe(400);
         const json = await res.json();
-        expect(json.error).toBe("Password must be at least 8 characters long");
+        expect(json.error).toBe("Validation failed");
       },
     });
   });
@@ -117,7 +117,8 @@ describe("Register API", () => {
           method: "POST",
           body: JSON.stringify({
             email: "test@example.com",
-            password: "password123",
+            password: "Password123",
+            firstName: "John",
           }),
         });
         expect(res.status).toBe(409);
@@ -147,7 +148,8 @@ describe("Register API", () => {
           method: "POST",
           body: JSON.stringify({
             email: "test@example.com",
-            password: "password123",
+            password: "Password123",
+            firstName: "John",
           }),
         });
         expect(res.status).toBe(500);
@@ -175,7 +177,7 @@ describe("Register API", () => {
           method: "POST",
           body: JSON.stringify({
             email: "test@example.com",
-            password: "password123",
+            password: "Password123",
             firstName: "John",
             lastName: "Doe",
           }),

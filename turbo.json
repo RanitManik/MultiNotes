@@ -1,7 +1,21 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
-  "globalEnv": ["DATABASE_URL", "DIRECT_URL", "NODE_ENV"],
+  "globalEnv": [
+    "DATABASE_URL",
+    "DIRECT_URL",
+    "JWT_SECRET",
+    "NODE_ENV",
+    "NEXTAUTH_URL",
+    "NEXTAUTH_SECRET",
+    "GITHUB_CLIENT_ID",
+    "GITHUB_CLIENT_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "BREVO_API_KEY",
+    "BREVO_FROM_EMAIL",
+    "BREVO_FROM_NAME"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["db:generate", "^build"],

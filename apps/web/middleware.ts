@@ -85,11 +85,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
-     * - api/auth (NextAuth specific routes)
+     * - api (all API routes handle auth internally)
      * - _next/ (Next.js internal routes)
      * - static files (anything with file extensions)
      */
-    "/((?!api/auth|_next/|.*\\.).*)",
+    "/((?!api/|_next/|.*\\.).*)",
   ],
 };
 

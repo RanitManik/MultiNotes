@@ -1,11 +1,9 @@
 # MultiNotes
 
-A production-ready multi-tenant notes | **Authentication** | NextAuth.js |pplication with role-based access control, subscription management, and comprehensive testing.
+A production-ready multi-tenant notes application with role-based access control, subscription management, and comprehensive testing.
 
 > [!NOTE]
-> **⚠️ Learning Project Notice**: This repository is a personal learning project and proof-of-concept. It is not intended for commercial use | `/api/auth/send-verification` | POST | Send email verification |
-> | `/api/auth/verify-email` | GET | Verify email address using verification token |
-> | `/api/auth/[...nextauth]` | GET/POST | NextAuth.js session management routes |`/api/auth/jwt` | GET | Generate JWT token for API access (requires session) | - |real-world production systems without further hardening. Use it for learning, experimentation, and reference purposes.
+> **⚠️ Learning Project Notice**: This repository is a personal learning project and proof-of-concept. It is not intended for commercial use in real-world production systems without further hardening. Use it for learning, experimentation, and reference purposes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![CI](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml)
@@ -50,7 +48,7 @@ A production-ready multi-tenant notes | **Authentication** | NextAuth.js |pplica
 | **Frontend**        | Next.js 15 (App Router), React 19          |
 | **Backend**         | Next.js API Routes (Serverless)            |
 | **Database**        | PostgreSQL with Prisma ORM                 |
-| **Authentication**  | JWT (HS256)                                |
+| **Authentication**  | NextAuth.js                                |
 | **Styling**         | Tailwind CSS + shadcn/ui                   |
 | **Testing**         | Jest (Unit/Integration) + Playwright (E2E) |
 | **Deployment**      | Vercel                                     |

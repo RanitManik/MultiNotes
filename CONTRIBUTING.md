@@ -61,7 +61,8 @@ MultiNotes is a multi-tenant notes application built with Next.js, featuring rol
 
    ```env
    DATABASE_URL="postgresql://username:password@localhost:5432/multinotes"
-   JWT_SECRET="your-super-secret-jwt-key-here"
+   NEXTAUTH_URL="http://localhost:3000"
+   NEXTAUTH_SECRET="your-nextauth-secret-here"
    ```
 
 4. **Set Up Database**
@@ -229,7 +230,7 @@ type(scope): description
 **Examples:**
 
 ```bash
-feat(auth): add JWT token validation
+feat(auth): add NextAuth session validation
 fix(ui): resolve mobile layout issues
 docs(readme): update installation instructions
 refactor(components): simplify note editor logic
@@ -407,7 +408,8 @@ pnpm db:migrate:prod
 Ensure these are set in your deployment environment:
 
 - `DATABASE_URL`: Production database connection
-- `JWT_SECRET`: Secure random string for JWT signing
+- `NEXTAUTH_URL`: Base URL of your application
+- `NEXTAUTH_SECRET`: Secret for NextAuth session encryption
 
 ## Community Guidelines
 

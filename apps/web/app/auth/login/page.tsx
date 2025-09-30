@@ -33,7 +33,6 @@ export default function LoginPage() {
         if (data.redirect) {
           router.push(data.redirect);
         } else {
-          localStorage.setItem("auth:token", data.token);
           router.push("/notes");
         }
       } else {

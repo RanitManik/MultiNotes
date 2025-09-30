@@ -65,19 +65,6 @@ export default function OrganizationSetupPage() {
       });
 
       if (response.ok) {
-        // Fetch JWT token and store it
-        try {
-          const jwtResponse = await fetch("/api/auth/jwt");
-          if (jwtResponse.ok) {
-            const jwtData = await jwtResponse.json();
-            if (jwtData.token) {
-              localStorage.setItem("auth:token", jwtData.token);
-            }
-          }
-        } catch (jwtError) {
-          console.error("Failed to fetch JWT token:", jwtError);
-        }
-
         setState("success");
       } else {
         const data = await response.json();

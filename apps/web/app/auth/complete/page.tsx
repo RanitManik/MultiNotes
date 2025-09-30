@@ -17,20 +17,7 @@ export default function CompletePage() {
       const hasTenant = (session.user as any)?.tenantId;
 
       if (hasTenant) {
-        // Fetch JWT from API
-        fetch("/api/auth/jwt")
-          .then(res => res.json())
-          .then(data => {
-            if (data.token) {
-              localStorage.setItem("auth:token", data.token);
-              router.push("/notes");
-            } else {
-              router.push("/auth/login");
-            }
-          })
-          .catch(() => {
-            router.push("/auth/login");
-          });
+        router.push("/notes");
       } else {
         // User needs to set up organization
         router.push("/organization/setup");

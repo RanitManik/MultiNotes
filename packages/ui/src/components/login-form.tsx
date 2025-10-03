@@ -59,7 +59,6 @@ export function LoginForm({
             placeholder="m@example.com"
             value={email}
             onChange={e => onEmailChange?.(e.target.value)}
-            required
             disabled={loading}
           />
         </div>
@@ -70,7 +69,6 @@ export function LoginForm({
               type="button"
               onClick={onForgotPassword}
               className="ml-auto cursor-pointer text-sm underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={!!oauthLoading || loading}
             >
               Forgot your password?
             </button>
@@ -78,9 +76,9 @@ export function LoginForm({
           <Input
             id="password"
             type="password"
+            placeholder="Enter your password (min 8 characters)"
             value={password}
             onChange={e => onPasswordChange?.(e.target.value)}
-            required
             disabled={loading}
           />
         </div>
@@ -90,11 +88,7 @@ export function LoginForm({
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={loading || !!oauthLoading}
-        >
+        <Button type="submit" className="w-full" disabled={loading}>
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -115,7 +109,7 @@ export function LoginForm({
             className="w-full"
             onClick={onGitHubSignIn}
             type="button"
-            disabled={!!oauthLoading}
+            disabled={oauthLoading === "github"}
           >
             {oauthLoading === "github" ? (
               <>
@@ -139,7 +133,7 @@ export function LoginForm({
             className="w-full"
             onClick={onGoogleSignIn}
             type="button"
-            disabled={!!oauthLoading}
+            disabled={oauthLoading === "google"}
           >
             {oauthLoading === "google" ? (
               <>
@@ -178,7 +172,6 @@ export function LoginForm({
           type="button"
           onClick={onSignUp}
           className="cursor-pointer underline underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!!oauthLoading}
         >
           Sign up
         </button>

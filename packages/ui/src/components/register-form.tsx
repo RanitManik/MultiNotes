@@ -91,7 +91,6 @@ export function RegisterForm({
             placeholder="m@example.com"
             value={email}
             onChange={e => onEmailChange?.(e.target.value)}
-            required
             disabled={loading}
           />
         </div>
@@ -103,7 +102,6 @@ export function RegisterForm({
             placeholder="Enter your password (min 8 characters)"
             value={password}
             onChange={e => onPasswordChange?.(e.target.value)}
-            required
             disabled={loading}
             minLength={8}
           />
@@ -140,7 +138,7 @@ export function RegisterForm({
             className="w-full"
             onClick={onGitHubSignIn}
             type="button"
-            disabled={!!oauthLoading}
+            disabled={oauthLoading === "github"}
           >
             {oauthLoading === "github" ? (
               <>
@@ -164,7 +162,7 @@ export function RegisterForm({
             className="w-full"
             onClick={onGoogleSignIn}
             type="button"
-            disabled={!!oauthLoading}
+            disabled={oauthLoading === "google"}
           >
             {oauthLoading === "google" ? (
               <>
@@ -203,7 +201,6 @@ export function RegisterForm({
           type="button"
           onClick={onSignIn}
           className="cursor-pointer underline underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50"
-          disabled={!!oauthLoading}
         >
           Sign in
         </button>

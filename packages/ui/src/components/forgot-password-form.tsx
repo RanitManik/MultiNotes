@@ -50,7 +50,6 @@ export function ForgotPasswordForm({
             placeholder="m@example.com"
             value={email}
             onChange={e => onEmailChange?.(e.target.value)}
-            required
             disabled={loading}
           />
         </div>

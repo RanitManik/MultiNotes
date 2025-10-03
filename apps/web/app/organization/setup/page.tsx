@@ -209,7 +209,6 @@ export default function OrganizationSetupPage() {
                 value={organizationName}
                 onChange={e => setOrganizationName(e.target.value)}
                 disabled={loading}
-                required
                 autoFocus
               />
               <p className="text-muted-foreground text-sm">

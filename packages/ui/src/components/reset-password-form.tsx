@@ -53,7 +53,6 @@ export function ResetPasswordForm({
             placeholder="Enter your new password"
             value={password}
             onChange={e => onPasswordChange?.(e.target.value)}
-            required
             disabled={loading}
             minLength={8}
           />
@@ -66,7 +65,6 @@ export function ResetPasswordForm({
             placeholder="Confirm your new password"
             value={confirmPassword}
             onChange={e => onConfirmPasswordChange?.(e.target.value)}
-            required
             disabled={loading}
             minLength={8}
           />

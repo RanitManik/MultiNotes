@@ -667,7 +667,6 @@ function NotesDashboardContent() {
                 placeholder="Enter note title"
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
-                required
               />
             </div>
             <div className="flex justify-end space-x-2">
@@ -709,7 +708,6 @@ function NotesDashboardContent() {
                 placeholder="Enter note title"
                 value={editTitle}
                 onChange={e => setEditTitle(e.target.value)}
-                required
               />
             </div>
             <div className="flex justify-end space-x-2">
@@ -755,7 +753,6 @@ function NotesDashboardContent() {
                   placeholder="Enter user email"
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
-                  required
                 />
               </div>
               <div className="w-full space-y-2">

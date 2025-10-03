@@ -2,7 +2,7 @@
 
 A production-ready multi-tenant notes application with role-based access control, subscription management, and comprehensive testing.
 
-> [!NOTE]
+> [!WARNING]
 > **⚠️ Learning Project Notice**: This repository is a personal learning project and proof-of-concept. It is not intended for commercial use in real-world production systems without further hardening. Use it for learning, experimentation, and reference purposes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

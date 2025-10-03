@@ -23,6 +23,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@workspace/ui/components/dropdown-menu";
 import { cn } from "@workspace/ui/lib/utils";
@@ -40,6 +43,7 @@ import {
   Moon,
   Sun,
   LogOut,
+  Monitor,
 } from "lucide-react";
 import type { Note, Tenant, User as UserType } from "@/lib/api";
 
@@ -96,29 +100,45 @@ function UserMenu({ user, tenant, onLogout, onUpgrade }: any) {
         >
           <div className="flex w-full items-center gap-2">
             <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-lg">
-              <User className="h-4 w-4" />
+              {user?.image ? (
+                <img
+                  src={user.image}
+                  alt="User avatar"
+                  className="h-8 w-8 rounded-lg object-cover"
+                />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               {user?.role === "admin" ? "Admin" : "Member"}
               {" • "}
               {tenant?.slug || "Tenant"}
               <span className="truncate text-xs font-medium">
-                {tenant?.email || "User"}
+                {user?.email || "User"}
               </span>
             </div>
             <ChevronsUpDown className="ml-auto size-4" />
           </div>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="start">
+      <DropdownMenuContent>
         <DropdownMenuLabel className="p-0 font-normal">
           <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
             <div className="bg-muted flex h-8 w-8 items-center justify-center rounded-lg">
-              <User className="h-4 w-4" />
+              {user?.image ? (
+                <img
+                  src={user.image}
+                  alt="User avatar"
+                  className="h-8 w-8 rounded-lg object-cover"
+                />
+              ) : (
+                <User className="h-4 w-4" />
+              )}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-medium">
-                {tenant?.email || "User"}
+                {user?.email || "User"}
               </span>
               <span className="truncate text-xs">
                 {user?.role === "admin" ? "Admin" : "Member"} •{" "}
@@ -140,16 +160,26 @@ function UserMenu({ user, tenant, onLogout, onUpgrade }: any) {
           </>
         )}
         <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-          >
-            {theme === "light" ? (
-              <Moon className="mr-2 h-4 w-4" />
-            ) : (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
               <Sun className="mr-2 h-4 w-4" />
-            )}
-            Switch to {theme === "light" ? "dark" : "light"} theme
-          </DropdownMenuItem>
+              Theme
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuItem onClick={() => setTheme("light")}>
+                <Sun className="mr-2 h-4 w-4" />
+                Light
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("dark")}>
+                <Moon className="mr-2 h-4 w-4" />
+                Dark
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme("system")}>
+                <Monitor className="mr-2 h-4 w-4" />
+                System
+              </DropdownMenuItem>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={onLogout}>
@@ -210,6 +240,10 @@ export const SidebarContent = React.memo(function SidebarContent({
         <div className="min-w-0 p-3">
           <div className="flex items-center justify-between">
             <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8" />
+                <Skeleton className="h-6 w-24" />
+              </div>
               <Skeleton className="h-4 w-20" />
               <Skeleton className="h-3 w-16" />
             </div>
@@ -245,9 +279,8 @@ export const SidebarContent = React.memo(function SidebarContent({
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="truncate text-pretty text-xl font-medium">
-                {tenant?.slug}
-              </span>
+              <img src="/logo.svg" alt="lucide note Logo" className="h-8 w-8" />
+              <span className="text-lg font-semibold">lucide note</span>
               <Badge
                 variant="secondary"
                 className="px-1.5 py-0.5 text-xs font-medium"
@@ -255,11 +288,17 @@ export const SidebarContent = React.memo(function SidebarContent({
                 {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
               </Badge>
             </div>
+            {/* <div className="flex items-center gap-2">
+              <span className="truncate text-pretty text-xl font-medium">
+                {tenant?.slug}
+              </span>
+              
+            </div>
             <p className="text-muted-foreground truncate text-xs">
               {tenant?.plan === "FREE" && tenant?.limit !== null
                 ? `${tenant?.noteCount} / ${tenant?.limit} Notes`
                 : `${tenant?.noteCount || 0} Notes`}
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

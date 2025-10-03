@@ -8,6 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import { Button } from "@workspace/ui/components/button";
 import { Input } from "@workspace/ui/components/input";
 import { Separator } from "@workspace/ui/components/separator";
@@ -68,6 +69,11 @@ import {
 } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditorContainer } from "@/components/note-editor-container";
+import {
+  createNoteSchema,
+  updateNoteSchema,
+  inviteUserSchema,
+} from "@/lib/validations";
 
 // Utility functions
 function generateRandomPassword(): string {
@@ -111,8 +117,11 @@ function NotesDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // User state
-  const [user, setUser] = useState<UserType | null>(null);
+  // NextAuth session
+  const { data: session, status } = useSession();
+
+  // User state - derived from session
+  const user = session?.user as UserType | null;
 
   // TanStack Query hooks
   const {
@@ -166,7 +175,8 @@ function NotesDashboardContent() {
   const [inviteError, setInviteError] = useState("");
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [error, setError] = useState("");
+  const [createNoteError, setCreateNoteError] = useState("");
+  const [editNoteError, setEditNoteError] = useState("");
 
   // Function to update a note in the local notes array
   const updateNoteInList = (noteId: string, updates: Partial<Note>) => {
@@ -185,36 +195,13 @@ function NotesDashboardContent() {
     hide: null,
   });
 
-  // Token validation and user setup effect
+  // Redirect if not authenticated
   useEffect(() => {
-    const token = localStorage.getItem("auth:token");
-    if (!token) {
+    if (status === "loading") return; // Still loading
+    if (!session) {
       router.push("/auth/login");
-      return;
     }
-
-    try {
-      const parts = token.split(".");
-      if (parts.length !== 3 || !parts[1]) throw new Error("Invalid token");
-      const payload = JSON.parse(atob(parts[1]));
-
-      // Check if token is expired
-      const currentTime = Math.floor(Date.now() / 1000);
-      if (payload.exp && payload.exp <= currentTime) {
-        throw new Error("Token expired");
-      }
-
-      setUser({
-        role: payload.role,
-        tenantSlug: payload.tenantSlug,
-        tenantPlan: payload.tenantPlan,
-      });
-    } catch {
-      localStorage.removeItem("auth:token");
-      router.push("/auth/login");
-      return;
-    }
-  }, [router]);
+  }, [session, status, router]);
 
   // Automatically select note based on search params or first note
   useEffect(() => {
@@ -300,7 +287,9 @@ function NotesDashboardContent() {
         toast.error("Upgrade to Pro to create more notes.");
         return;
       }
-      const noteData = {
+
+      // Validate form data
+      const validationResult = createNoteSchema.safeParse({
         title: newTitle,
         content: {
           type: "doc",
@@ -316,12 +305,25 @@ function NotesDashboardContent() {
             },
           ],
         },
+      });
+
+      if (!validationResult.success) {
+        setCreateNoteError(
+          validationResult.error.issues?.[0]?.message || "Validation failed"
+        );
+        return;
+      }
+
+      const validatedData = validationResult.data;
+      const noteData = {
+        title: validatedData.title!,
+        content: validatedData.content,
       };
 
       // Close dialog and clear form immediately for optimistic UX
       setShowCreateForm(false);
       setNewTitle("");
-      setError("");
+      setCreateNoteError("");
 
       try {
         await toast.promise(createNoteMutation.mutateAsync(noteData), {
@@ -358,7 +360,7 @@ function NotesDashboardContent() {
       handleSelectNote,
       setShowCreateForm,
       setNewTitle,
-      setError,
+      setCreateNoteError,
       setIsSheetOpen,
     ]
   );
@@ -366,6 +368,7 @@ function NotesDashboardContent() {
   const handleEditNote = useCallback((note: Note) => {
     setEditingNote(note);
     setEditTitle(note.title);
+    setEditNoteError("");
     setShowEditForm(true);
   }, []);
 
@@ -373,13 +376,31 @@ function NotesDashboardContent() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       if (!editingNote) return;
-      const noteData = { title: editTitle, content: editingNote.content };
+
+      // Validate form data
+      const validationResult = updateNoteSchema.safeParse({
+        title: editTitle,
+        content: editingNote.content,
+      });
+
+      if (!validationResult.success) {
+        setEditNoteError(
+          validationResult.error.issues?.[0]?.message || "Validation failed"
+        );
+        return;
+      }
+
+      const validatedData = validationResult.data;
+      const noteData = {
+        title: validatedData.title,
+        content: validatedData.content,
+      };
 
       // Close dialog and clear form immediately for optimistic UX
       setShowEditForm(false);
       setEditingNote(null);
       setEditTitle("");
-      setError("");
+      setEditNoteError("");
 
       try {
         await toast.promise(
@@ -408,7 +429,7 @@ function NotesDashboardContent() {
       setShowEditForm,
       setEditingNote,
       setEditTitle,
-      setError,
+      setEditNoteError,
       updateNoteInList,
     ]
   );
@@ -425,7 +446,9 @@ function NotesDashboardContent() {
         success: "Note deleted successfully",
         error: "Failed to delete note",
       });
-      const remaining = (notes || []).filter((n: any) => n.id !== deleteNoteId);
+      const remaining = (notes || []).filter(
+        (n: Note) => n.id !== deleteNoteId
+      );
       setSelectedId(remaining[0]?.id || null);
 
       // Update URL with the new selected note or remove param if none
@@ -446,10 +469,26 @@ function NotesDashboardContent() {
     async (e: React.FormEvent) => {
       e.preventDefault();
       setInviteError(""); // Clear any previous error
+
+      // Validate form data
+      const validationResult = inviteUserSchema.safeParse({
+        email: inviteEmail,
+        role: inviteRole,
+      });
+
+      if (!validationResult.success) {
+        setInviteError(
+          validationResult.error.issues?.[0]?.message || "Validation failed"
+        );
+        return;
+      }
+
+      const validatedData = validationResult.data;
+
       try {
         const result = await inviteUserMutation.mutateAsync({
-          email: inviteEmail,
-          role: inviteRole,
+          email: validatedData.email,
+          role: validatedData.role as "admin" | "member",
           password: invitePassword || undefined,
         });
 
@@ -495,50 +534,67 @@ function NotesDashboardContent() {
     ]
   );
 
-  const handleLogout = useCallback(() => {
-    localStorage.removeItem("auth:token");
+  const handleLogout = useCallback(async () => {
     // Clear all cached data to prevent showing previous user's data
     queryClient.clear();
-    router.push("/auth/login");
-  }, [queryClient, router]);
+    // Sign out from NextAuth
+    await toast.promise(signOut({ callbackUrl: "/auth/login" }), {
+      loading: "Signing out...",
+      success: "Signed out successfully",
+      error: "Failed to sign out",
+    });
+  }, [queryClient]);
 
   // Handler for the upgrade process.
   const upgradingRef = useRef(false);
   const onUpgrade = useCallback(async () => {
     if (upgradingRef.current) return;
     upgradingRef.current = true;
+    // Clear any existing confetti
+    setShowConfetti(false);
+    setConfettiFading(false);
     try {
       await toast.promise(upgradeTenantMutation.mutateAsync(tenant.slug), {
         loading: "Upgrading to Pro...",
-        success: "Upgraded to Pro successfully!",
-        error: "Upgrade failed to process.",
+        success: result => {
+          // Note: Session should be updated to reflect pro plan, or page may need refresh
+
+          // 🎊 Show confetti and fade it out smoothly before hiding.
+          const DURATION = 6000; // total confetti duration
+          const FADE_MS = 1000; // fade duration at the end
+          // Clear any existing timers
+          if (confettiTimers.current.fade)
+            clearTimeout(confettiTimers.current.fade);
+          if (confettiTimers.current.hide)
+            clearTimeout(confettiTimers.current.hide);
+
+          setConfettiFading(false);
+          setShowConfetti(true);
+          // Schedule fade to start shortly before the end
+          confettiTimers.current.fade = setTimeout(
+            () => setConfettiFading(true),
+            DURATION - FADE_MS
+          ) as unknown as number;
+          // Hide after the full duration
+          confettiTimers.current.hide = setTimeout(() => {
+            setShowConfetti(false);
+            setConfettiFading(false);
+          }, DURATION) as unknown as number;
+
+          return "Upgraded to Pro successfully!";
+        },
+        error: async err => {
+          if (err?.json) {
+            try {
+              const data = await err.json();
+              return data.error || "Upgrade failed to process.";
+            } catch {
+              return "Upgrade failed to process.";
+            }
+          }
+          return "Upgrade failed to process.";
+        },
       });
-      // Update user state to reflect pro plan
-      setUser(prevUser =>
-        prevUser ? { ...prevUser, tenantPlan: "pro" } : null
-      );
-
-      // 🎊 Show confetti and fade it out smoothly before hiding.
-      const DURATION = 6000; // total confetti duration
-      const FADE_MS = 1000; // fade duration at the end
-      // Clear any existing timers
-      if (confettiTimers.current.fade)
-        clearTimeout(confettiTimers.current.fade);
-      if (confettiTimers.current.hide)
-        clearTimeout(confettiTimers.current.hide);
-
-      setConfettiFading(false);
-      setShowConfetti(true);
-      // Schedule fade to start shortly before the end
-      confettiTimers.current.fade = setTimeout(
-        () => setConfettiFading(true),
-        DURATION - FADE_MS
-      ) as unknown as number;
-      // Hide after the full duration
-      confettiTimers.current.hide = setTimeout(() => {
-        setShowConfetti(false);
-        setConfettiFading(false);
-      }, DURATION) as unknown as number;
     } catch (err) {
       //
     }
@@ -546,21 +602,29 @@ function NotesDashboardContent() {
   }, [
     upgradeTenantMutation,
     tenant.slug,
-    setUser,
     setConfettiFading,
     setShowConfetti,
     confettiTimers,
   ]);
 
-  // Clean up confetti timers when component unmounts
+  // Clear errors when dialogs close
   useEffect(() => {
-    return () => {
-      if (confettiTimers.current.fade)
-        clearTimeout(confettiTimers.current.fade);
-      if (confettiTimers.current.hide)
-        clearTimeout(confettiTimers.current.hide);
-    };
-  }, []);
+    if (!showCreateForm) {
+      setCreateNoteError("");
+    }
+  }, [showCreateForm]);
+
+  useEffect(() => {
+    if (!showEditForm) {
+      setEditNoteError("");
+    }
+  }, [showEditForm]);
+
+  useEffect(() => {
+    if (!showInviteForm) {
+      setInviteError("");
+    }
+  }, [showInviteForm]);
 
   return (
     <React.Suspense fallback={<div>Loading...</div>}>
@@ -613,9 +677,14 @@ function NotesDashboardContent() {
                 placeholder="Enter note title"
                 value={newTitle}
                 onChange={e => setNewTitle(e.target.value)}
-                required
               />
             </div>
+            {createNoteError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{createNoteError}</AlertDescription>
+              </Alert>
+            )}
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
@@ -655,9 +724,14 @@ function NotesDashboardContent() {
                 placeholder="Enter note title"
                 value={editTitle}
                 onChange={e => setEditTitle(e.target.value)}
-                required
               />
             </div>
+            {editNoteError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{editNoteError}</AlertDescription>
+              </Alert>
+            )}
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
@@ -701,7 +775,6 @@ function NotesDashboardContent() {
                   placeholder="Enter user email"
                   value={inviteEmail}
                   onChange={e => setInviteEmail(e.target.value)}
-                  required
                 />
               </div>
               <div className="w-full space-y-2">
@@ -823,14 +896,6 @@ function NotesDashboardContent() {
         </Dialog>
       )}
 
-      {/* Error Alert */}
-      {error && (
-        <Alert className="mb-6" variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
       <div className="flex h-svh w-full overflow-hidden">
         {/* Permanent Sidebar for medium screens and up (desktops) */}
         <aside className="bg-card hidden w-72 shrink-0 flex-col border-r md:flex">
@@ -896,7 +961,7 @@ function NotesDashboardContent() {
           </Topbar>
           <Separator />
           <div className="min-w-0 flex-1">
-            {notesLoading || tenantLoading ? (
+            {notesLoading || tenantLoading || status === "loading" ? (
               <div className="flex h-full flex-col">
                 <div className="flex items-center gap-2 px-4 pb-2 pt-4">
                   <Skeleton className="h-10 flex-1" />

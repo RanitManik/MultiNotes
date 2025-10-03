@@ -1,5 +1,5 @@
 name: "🐛 Bug Report"
-description: Report a bug or unexpected behavior in MultiNotes
+description: Report a bug or unexpected behavior in lucide note
 title: "[Bug]: "
 labels: ["bug", "triage"]
 assignees: []
@@ -9,7 +9,7 @@ body:
       value: |
         ## 🐞 Bug Report
 
-        Thank you for reporting a bug in **MultiNotes**. Clear, reproducible reports help us fix issues faster.
+        Thank you for reporting a bug in **lucide note**. Clear, reproducible reports help us fix issues faster.
 
         Before you proceed:
 
@@ -23,7 +23,7 @@ body:
       label: "📌 Environment Information"
       description: "Provide details about your environment:"
       placeholder: |
-  - MultiNotes version:
+  - lucide note version:
       - Node.js version:
       - Browser and version:
       - Database:

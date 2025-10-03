@@ -2,164 +2,125 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@workspace/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@workspace/ui/components/card";
-import { Input } from "@workspace/ui/components/input";
-import { Label } from "@workspace/ui/components/label";
-import { Alert, AlertDescription } from "@workspace/ui/components/alert";
-import { Loader2, Mail, Lock, AlertTriangle } from "lucide-react";
+import { LoginForm } from "@workspace/ui/components/login-form";
+import { signIn, useSession } from "next-auth/react";
+import { loginSchema, type LoginInput } from "@/lib/validations";
+import axios from "axios";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
+  const [oauthLoading, setOauthLoading] = useState<"github" | "google" | null>(
+    null
+  );
   const router = useRouter();
+  const { data: session, status } = useSession();
 
+  // Handle redirect after successful login
   useEffect(() => {
-    // Check if user is already logged in
-    const token = localStorage.getItem("auth:token");
-    if (token) {
-      // Verify token is valid by decoding it locally
-      try {
-        const parts = token.split(".");
-        if (parts.length === 3 && parts[1]) {
-          const payload = JSON.parse(atob(parts[1]));
-          // Check if token is not expired
-          const currentTime = Math.floor(Date.now() / 1000);
-          if (payload.exp && payload.exp > currentTime) {
-            router.push("/notes");
-            return;
-          }
-        }
-      } catch {
-        // Token is invalid
+    if (status === "loading") return;
+
+    if (status === "authenticated" && session) {
+      const hasTenant = (session.user as any)?.tenantId;
+      if (hasTenant) {
+        router.push("/notes");
+      } else {
+        router.push("/organization/setup");
       }
-      // Remove invalid token
-      localStorage.removeItem("auth:token");
     }
-    setCheckingAuth(false);
-  }, [router]);
+  }, [session, status, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
+    // Validate form data
+    const validationResult = loginSchema.safeParse({ email, password });
+    if (!validationResult.success) {
+      setError(
+        validationResult.error.issues?.[0]?.message || "Validation failed"
+      );
+      setLoading(false);
+      return;
+    }
+
+    const validatedData = validationResult.data;
+
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      // Call login API
+      const response = await axios.post("/api/auth/login", validatedData);
 
-      const data = await response.json();
+      if (response.data.user) {
+        // If login successful, use NextAuth to create session
+        const result = await signIn("credentials", {
+          email: validatedData.email,
+          password: validatedData.password,
+          redirect: false,
+        });
 
-      if (response.ok) {
-        localStorage.setItem("auth:token", data.token);
-        router.push("/notes");
-      } else {
-        setError(data.error || "Login failed");
+        if (result?.ok) {
+          // Force a session refresh
+          await router.refresh();
+          // The useEffect will handle the redirect when session updates
+        } else {
+          setError("Failed to create session");
+          setLoading(false);
+        }
       }
-    } catch {
-      setError("Network error");
-    } finally {
+    } catch (error: any) {
+      console.error("Login error:", error);
+
+      if (error.response?.data?.error === "EmailNotVerified") {
+        setError(
+          error.response.data.message ||
+            "Please verify your email before signing in."
+        );
+      } else if (error.response?.data?.error) {
+        setError(error.response.data.error);
+      } else {
+        setError("Network error");
+      }
       setLoading(false);
     }
   };
 
-  if (checkingAuth) {
-    return (
-      <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br">
-        <div className="text-center">
-          <Loader2 className="text-primary mx-auto mb-4 h-8 w-8 animate-spin" />
-          <p className="text-muted-foreground">Checking authentication...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="from-background to-muted flex min-h-screen items-center justify-center bg-gradient-to-br p-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center">
-          <CardTitle className="text-foreground text-2xl font-bold">
-            Welcome to MultiNotes
-          </CardTitle>
-          <CardDescription>
-            Sign in to your account to access your notes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="h-4 w-4" />
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center gap-2">
-                <Lock className="h-4 w-4" />
-                Password
-              </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
-          </form>
-          <div className="mt-6 text-center">
-            <p className="text-muted-foreground text-sm">
-              Don't have an account?{" "}
-              <button
-                type="button"
-                onClick={() => router.push("/auth/register")}
-                className="text-primary font-medium hover:underline"
-              >
-                Sign up
-              </button>
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="bg-background flex min-h-screen items-center justify-center p-4">
+      <div className="animate-fade-up animate-duration-250 w-full max-w-md">
+        <LoginForm
+          email={email}
+          password={password}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+          onSubmit={handleSubmit}
+          loading={loading}
+          oauthLoading={oauthLoading}
+          error={error}
+          onSignUp={() => router.push("/auth/register")}
+          onForgotPassword={() => router.push("/auth/forgot-password")}
+          onGitHubSignIn={async () => {
+            setOauthLoading("github");
+            try {
+              await signIn("github", { callbackUrl: "/auth/complete" });
+            } catch (error) {
+              setOauthLoading(null);
+              setError("GitHub sign-in failed");
+            }
+          }}
+          onGoogleSignIn={async () => {
+            setOauthLoading("google");
+            try {
+              await signIn("google", { callbackUrl: "/auth/complete" });
+            } catch (error) {
+              setOauthLoading(null);
+              setError("Google sign-in failed");
+            }
+          }}
+        />
+      </div>
     </div>
   );
 }

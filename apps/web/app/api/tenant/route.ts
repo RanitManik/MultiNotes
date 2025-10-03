@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const tenant = await prisma.tenant.findUnique({
-      where: { id: user.tenantId },
+      where: { id: session.user.tenantId },
     });
 
     if (!tenant) {
@@ -19,12 +19,12 @@ export async function GET(request: NextRequest) {
 
     // Count notes for this tenant
     const noteCount = await prisma.note.count({
-      where: { tenant_id: user.tenantId },
+      where: { tenant_id: session.user.tenantId },
     });
 
     // Get user's email for display
     const userRecord = await prisma.user.findUnique({
-      where: { id: user.id },
+      where: { id: session.user.id },
       select: { email: true },
     });
 

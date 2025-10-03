@@ -13,13 +13,16 @@
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:migrate:prod": "prisma migrate deploy",
+    "db:push": "prisma migrate deploy",
     "db:seed": "tsx prisma/seed.ts",
     "db:setup": "prisma migrate deploy && tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
     "test": "jest",
     "test:watch": "jest --watch"
   },
   "dependencies": {
+    "@auth/prisma-adapter": "^2.10.0",
+    "@getbrevo/brevo": "^3.0.1",
     "@prisma/client": "^5.22.0",
     "@tanstack/react-query": "^5.90.2",
     "@tiptap/extension-blockquote": "^2.26.2",
@@ -47,12 +50,14 @@
     "lucide-react": "^0.475.0",
     "menus": "link:@tiptap/react/menus",
     "next": "^15.5.4",
+    "next-auth": "5.0.0-beta.29",
     "next-themes": "^0.4.6",
     "prisma": "^5.22.0",
     "react": "^19.1.1",
     "react-confetti": "^6.4.0",
     "react-dom": "^19.1.1",
-    "sonner": "^2.0.7"
+    "sonner": "^2.0.7",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

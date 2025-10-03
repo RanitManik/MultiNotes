@@ -1,9 +1,10 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "tailwindcss-animated";
+
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../../../components/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
-
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -57,7 +58,7 @@
   --muted-foreground: oklch(0.705 0.015 286.067);
   --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.6 0.191 22.216);
+  --destructive: oklch(0.65 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.541 0.281 293.009);

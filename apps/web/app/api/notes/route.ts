@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { createNoteSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const notes = await prisma.note.findMany({
-      where: { tenant_id: user.tenantId },
+      where: { tenant_id: session.user.tenantId },
       include: { author: { select: { email: true } } },
       orderBy: { created_at: "desc" },
     });
@@ -26,24 +27,27 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    const { title, content } = await request.json();
+    const body = await request.json();
 
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: "Title and content required" },
-        { status: 400 }
-      );
+    // Validate input with Zod
+    const validationResult = createNoteSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errorMessage =
+        validationResult.error.issues[0]?.message || "Validation failed";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
+
+    const { title, content } = validationResult.data;
 
     // Check subscription limit
     const tenant = await prisma.tenant.findUnique({
-      where: { id: user.tenantId },
+      where: { id: session.user.tenantId },
     });
 
     if (!tenant) {
@@ -52,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     if (tenant.plan === "free") {
       const noteCount = await prisma.note.count({
-        where: { tenant_id: user.tenantId },
+        where: { tenant_id: session.user.tenantId },
       });
 
       if (noteCount >= 3) {
@@ -65,10 +69,10 @@ export async function POST(request: NextRequest) {
 
     const note = await prisma.note.create({
       data: {
-        title,
+        title: title ?? "",
         content,
-        tenant_id: user.tenantId,
-        author_id: user.id,
+        tenant_id: session.user.tenantId,
+        author_id: session.user.id,
       },
       include: { author: { select: { email: true } } },
     });

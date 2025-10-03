@@ -21,23 +21,23 @@ export interface Tenant {
 }
 
 export interface User {
-  role: "admin" | "member";
-  tenantSlug: string;
+  id: string;
+  name?: string | null;
+  email: string;
+  image?: string | null;
+  tenantId: string | null;
+  tenantSlug: string | null;
   tenantPlan: "free" | "pro";
+  role: "admin" | "member";
 }
 
 // API base URL and auth helpers
 const getAuthHeaders = (): Record<string, string> => {
-  const token =
-    typeof window !== "undefined" ? localStorage.getItem("auth:token") : null;
-  return token
-    ? { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }
-    : { "Content-Type": "application/json" };
+  return { "Content-Type": "application/json" };
 };
 
 const handleApiError = (error: any) => {
   if (error.status === 401) {
-    localStorage.removeItem("auth:token");
     window.location.href = "/auth/login";
     return;
   }
@@ -105,7 +105,7 @@ export const api = {
 
   upgradeTenant: async (
     slug: string
-  ): Promise<{ message: string; tenant: Tenant; token: string }> => {
+  ): Promise<{ message: string; tenant: Tenant }> => {
     const response = await fetch(`/api/tenants/${slug}/upgrade`, {
       method: "POST",
       headers: getAuthHeaders(),
@@ -196,11 +196,7 @@ export const useUpgradeTenant = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.upgradeTenant,
-    onSuccess: data => {
-      // Update the auth token
-      if (data.token) {
-        localStorage.setItem("auth:token", data.token);
-      }
+    onSuccess: () => {
       // Invalidate tenant query to get updated data
       queryClient.invalidateQueries({ queryKey: ["tenant"] });
     },

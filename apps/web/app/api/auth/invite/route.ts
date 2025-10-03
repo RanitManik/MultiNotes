@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { sendOrganizationInviteEmail } from "@/lib/email";
+import { randomBytes } from "crypto";
+import { inviteUserSchema } from "@/lib/validations";
 
 function generateRandomPassword(): string {
   const chars =
@@ -15,33 +18,28 @@ function generateRandomPassword(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = requireAuth(request);
-    if (!user) {
+    const session = await auth();
+    if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (user.role !== "admin") {
+    if (session.user.role !== "admin") {
       return NextResponse.json(
         { error: "Admin access required" },
         { status: 403 }
       );
     }
 
-    const { email, role, password } = await request.json();
+    const body = await request.json();
+    const validation = inviteUserSchema.safeParse(body);
 
-    if (!email || !role) {
-      return NextResponse.json(
-        { error: "Email and role required" },
-        { status: 400 }
-      );
+    if (!validation.success) {
+      const errorMessage =
+        validation.error.issues[0]?.message || "Validation failed";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    if (!["admin", "member"].includes(role)) {
-      return NextResponse.json(
-        { error: "Invalid role. Must be 'admin' or 'member'" },
-        { status: 400 }
-      );
-    }
+    const { email, role, password } = validation.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -59,12 +57,17 @@ export async function POST(request: NextRequest) {
     const userPassword = password || generateRandomPassword();
     const hashedPassword = await bcrypt.hash(userPassword, 10);
 
+    // Generate verification token
+    const verificationToken = randomBytes(32).toString("hex");
+    const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days for invites
+
     const newUser = await prisma.user.create({
       data: {
         email,
         password_hash: hashedPassword,
         role: role as "admin" | "member",
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
+        emailVerified: null, // Not verified yet
       },
       select: {
         id: true,
@@ -79,8 +82,31 @@ export async function POST(request: NextRequest) {
       },
     });
 
+    // Save verification token
+    await prisma.verificationToken.create({
+      data: {
+        identifier: email,
+        token: verificationToken,
+        expires: tokenExpires,
+      },
+    });
+
+    // Send invitation email with verification link
+    const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
+    const emailResult = await sendOrganizationInviteEmail(
+      email,
+      session.user.name || session.user.email || "Admin",
+      newUser.tenant?.name || "the organization",
+      verificationUrl
+    );
+
+    if (!emailResult.success) {
+      console.error("Failed to send invitation email:", emailResult.error);
+      // Don't fail the request, but log the error
+    }
+
     return NextResponse.json({
-      message: "User invited successfully",
+      message: "User invited successfully. An invitation email has been sent.",
       user: newUser,
       password: userPassword,
     });

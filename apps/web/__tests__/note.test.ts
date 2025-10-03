@@ -3,7 +3,7 @@ import * as appHandler from "../app/api/notes/[id]/route";
 
 // Mock auth
 jest.mock("@/lib/auth", () => ({
-  requireAuth: jest.fn(),
+  auth: jest.fn(),
 }));
 
 // Mock prisma
@@ -17,7 +17,7 @@ jest.mock("@/lib/db", () => ({
   },
 }));
 
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 describe("Notes [id] API", () => {
@@ -27,7 +27,7 @@ describe("Notes [id] API", () => {
 
   describe("GET /api/notes/[id]", () => {
     it("should return 401 for unauthenticated user", async () => {
-      (requireAuth as jest.Mock).mockReturnValue(null);
+      (auth as jest.Mock).mockResolvedValue(null);
 
       await testApiHandler({
         appHandler,
@@ -42,9 +42,11 @@ describe("Notes [id] API", () => {
     });
 
     it("should return 404 for note not found", async () => {
-      (requireAuth as jest.Mock).mockReturnValue({
-        id: 1,
-        tenantId: 1,
+      (auth as jest.Mock).mockResolvedValue({
+        user: {
+          id: "1",
+          tenantId: "1",
+        },
       });
       (prisma.note.findFirst as jest.Mock).mockResolvedValue(null);
 
@@ -61,9 +63,11 @@ describe("Notes [id] API", () => {
     });
 
     it("should return note for authenticated user", async () => {
-      (requireAuth as jest.Mock).mockReturnValue({
-        id: 1,
-        tenantId: 1,
+      (auth as jest.Mock).mockResolvedValue({
+        user: {
+          id: "1",
+          tenantId: "1",
+        },
       });
       (prisma.note.findFirst as jest.Mock).mockResolvedValue({
         id: "1",
@@ -87,7 +91,7 @@ describe("Notes [id] API", () => {
 
   describe("PUT /api/notes/[id]", () => {
     it("should return 401 for unauthenticated user", async () => {
-      (requireAuth as jest.Mock).mockReturnValue(null);
+      (auth as jest.Mock).mockResolvedValue(null);
 
       await testApiHandler({
         appHandler,
@@ -105,9 +109,11 @@ describe("Notes [id] API", () => {
     });
 
     it("should return 400 for missing title", async () => {
-      (requireAuth as jest.Mock).mockReturnValue({
-        id: 1,
-        tenantId: 1,
+      (auth as jest.Mock).mockResolvedValue({
+        user: {
+          id: "1",
+          tenantId: "1",
+        },
       });
 
       await testApiHandler({
@@ -126,9 +132,11 @@ describe("Notes [id] API", () => {
     });
 
     it("should return 404 for note not found", async () => {
-      (requireAuth as jest.Mock).mockReturnValue({
-        id: 1,
-        tenantId: 1,
+      (auth as jest.Mock).mockResolvedValue({
+        user: {
+          id: "1",
+          tenantId: "1",
+        },
       });
       (prisma.note.findFirst as jest.Mock).mockResolvedValue(null);
 
@@ -148,9 +156,11 @@ describe("Notes [id] API", () => {
     });
 
     it("should update note successfully", async () => {
-      (requireAuth as jest.Mock).mockReturnValue({
-        id: 1,
-        tenantId: 1,
+      (auth as jest.Mock).mockResolvedValue({
+        user: {
+          id: "1",
+          tenantId: "1",
+        },
       });
       (prisma.note.findFirst as jest.Mock).mockResolvedValue({
         id: "1",
@@ -185,7 +195,7 @@ describe("Notes [id] API", () => {
 
   describe("DELETE /api/notes/[id]", () => {
     it("should return 401 for unauthenticated user", async () => {
-      (requireAuth as jest.Mock).mockReturnValue(null);
+      (auth as jest.Mock).mockResolvedValue(null);
 
       await testApiHandler({
         appHandler,
@@ -200,9 +210,11 @@ describe("Notes [id] API", () => {
     });
 
     it("should return 404 for note not found", async () => {
-      (requireAuth as jest.Mock).mockReturnValue({
-        id: 1,
-        tenantId: 1,
+      (auth as jest.Mock).mockResolvedValue({
+        user: {
+          id: "1",
+          tenantId: "1",
+        },
       });
       (prisma.note.findFirst as jest.Mock).mockResolvedValue(null);
 
@@ -219,9 +231,11 @@ describe("Notes [id] API", () => {
     });
 
     it("should delete note successfully", async () => {
-      (requireAuth as jest.Mock).mockReturnValue({
-        id: 1,
-        tenantId: 1,
+      (auth as jest.Mock).mockResolvedValue({
+        user: {
+          id: "1",
+          tenantId: "1",
+        },
       });
       (prisma.note.findFirst as jest.Mock).mockResolvedValue({
         id: "1",

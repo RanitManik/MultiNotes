@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { requireAuth } from "@/lib/auth";
+import { auth } from "@/lib/auth";
+import { updateNoteSchema } from "@/lib/validations";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -16,7 +17,7 @@ export async function GET(
     const note = await prisma.note.findFirst({
       where: {
         id,
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
       },
       include: { author: { select: { email: true } } },
     });
@@ -39,26 +40,29 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
     const { id } = await params;
-    const { title, content } = await request.json();
+    const body = await request.json();
 
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: "Title and content required" },
-        { status: 400 }
-      );
+    // Validate input with Zod
+    const validationResult = updateNoteSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errorMessage =
+        validationResult.error.issues[0]?.message || "Validation failed";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
+
+    const { title, content } = validationResult.data;
 
     const note = await prisma.note.findFirst({
       where: {
         id,
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
       },
     });
 
@@ -89,8 +93,8 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = requireAuth(request);
-  if (!user) {
+  const session = await auth();
+  if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -99,7 +103,7 @@ export async function DELETE(
     const note = await prisma.note.findFirst({
       where: {
         id,
-        tenant_id: user.tenantId,
+        tenant_id: session.user.tenantId,
       },
     });
 

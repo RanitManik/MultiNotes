@@ -1,6 +1,6 @@
-# Contributing to MultiNotes
+# Contributing to lucide note
 
-Thank you for your interest in contributing to MultiNotes! This document provides guidelines and information for contributors.
+Thank you for your interest in contributing to lucide note! This document provides guidelines and information for contributors.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Thank you for your interest in contributing to MultiNotes! This document provide
 
 ## About This Project
 
-MultiNotes is a multi-tenant notes application built with Next.js, featuring role-based access control and subscription management. It's designed as a learning project and proof-of-concept.
+lucide note is a multi-tenant notes application built with Next.js, featuring role-based access control and subscription management. It's designed as a learning project and proof-of-concept.
 
 **Important Notes:**
 
@@ -40,8 +40,8 @@ MultiNotes is a multi-tenant notes application built with Next.js, featuring rol
 1. **Fork and Clone the Repository**
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/MultiNotes.git
-   cd MultiNotes
+   git clone https://github.com/YOUR_USERNAME/lucide-note.git
+   cd lucide-note
    ```
 
 2. **Install Dependencies**
@@ -60,7 +60,7 @@ MultiNotes is a multi-tenant notes application built with Next.js, featuring rol
    Add the following to `.env.local`:
 
    ```env
-   DATABASE_URL="postgresql://username:password@localhost:5432/multinotes"
+   DATABASE_URL="postgresql://username:password@localhost:5432/lucide-note"
    NEXTAUTH_URL="http://localhost:3000"
    NEXTAUTH_SECRET="your-nextauth-secret-here"
    ```
@@ -349,7 +349,7 @@ Use the feature request template and include:
 
 For general questions or discussions:
 
-- Use [GitHub Discussions](https://github.com/RanitManik/MultiNotes/discussions)
+- Use [GitHub Discussions](https://github.com/RanitManik/lucide-note/discussions)
 - Check existing issues and discussions first
 
 ## Code Review
@@ -439,4 +439,4 @@ Contributors are recognized through:
 
 ---
 
-Thank you for contributing to MultiNotes! Your help makes this project better for everyone. 🚀
+Thank you for contributing to lucide note! Your help makes this project better for everyone. 🚀

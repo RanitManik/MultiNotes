@@ -279,8 +279,8 @@ export const SidebarContent = React.memo(function SidebarContent({
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <img src="/logo.svg" alt="MultiNotes Logo" className="h-8 w-8" />
-              <span className="text-lg font-semibold">MultiNotes</span>
+              <img src="/logo.svg" alt="lucide note Logo" className="h-8 w-8" />
+              <span className="text-lg font-semibold">lucide note</span>
               <Badge
                 variant="secondary"
                 className="px-1.5 py-0.5 text-xs font-medium"

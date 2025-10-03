@@ -43,13 +43,13 @@ export default function LandingPage() {
             <div className="relative">
               <Image
                 src="/logo.svg"
-                alt="MultiNotes Logo"
+                alt="lucide note Logo"
                 width={40}
                 height={40}
               />
             </div>
             <span className="from-primary bg-gradient-to-r to-blue-600 bg-clip-text text-xl font-bold text-transparent md:text-2xl">
-              MultiNotes
+              lucide note
             </span>
           </div>
           <div className="flex items-center gap-2 md:gap-4">
@@ -296,7 +296,7 @@ export default function LandingPage() {
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-4 italic">
-                    "MultiNotes has revolutionized how our team collaborates.
+                    "lucide note has revolutionized how our team collaborates.
                     The real-time editing and rich formatting make it so easy to
                     create professional documentation."
                   </p>
@@ -360,7 +360,7 @@ export default function LandingPage() {
                     ))}
                   </div>
                   <p className="text-muted-foreground mb-4 italic">
-                    "Since switching to MultiNotes, our team's productivity has
+                    "Since switching to lucide note, our team's productivity has
                     increased by 40%. The intuitive interface makes it easy for
                     everyone to contribute."
                   </p>
@@ -393,8 +393,9 @@ export default function LandingPage() {
                   Ready to transform your team's productivity?
                 </h2>
                 <p className="mx-auto mb-8 max-w-2xl text-lg leading-relaxed opacity-90 md:text-xl">
-                  Join thousands of teams already using MultiNotes to streamline
-                  their workflow, boost creativity, and achieve more together.
+                  Join thousands of teams already using lucide note to
+                  streamline their workflow, boost creativity, and achieve more
+                  together.
                 </p>
                 <div className="flex flex-col justify-center gap-4 sm:flex-row">
                   <Button
@@ -444,14 +445,14 @@ export default function LandingPage() {
                 <div className="relative">
                   <Image
                     src="/logo.svg"
-                    alt="MultiNotes Logo"
+                    alt="lucide note Logo"
                     width={32}
                     height={32}
                   />
                   <div className="bg-primary absolute -right-1 -top-1 h-3 w-3 animate-pulse rounded-full"></div>
                 </div>
                 <span className="from-primary bg-gradient-to-r to-blue-600 bg-clip-text text-xl font-bold text-transparent">
-                  MultiNotes
+                  lucide note
                 </span>
               </div>
               <p className="text-muted-foreground mb-4 max-w-md">
@@ -524,7 +525,7 @@ export default function LandingPage() {
 
           <div className="border-border/50 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row">
             <p className="text-muted-foreground text-sm">
-              &copy; 2025 MultiNotes. All rights reserved.
+              &copy; 2025 lucide note. All rights reserved.
             </p>
             <div className="text-muted-foreground flex gap-6 text-sm">
               <a href="#" className="hover:text-primary transition-colors">

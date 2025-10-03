@@ -42,7 +42,7 @@ export function LoginForm({
       <div className="flex flex-col items-center gap-2 text-center">
         <img
           src="/logo.svg"
-          alt="MultiNotes Logo"
+          alt="lucide note Logo"
           className="mx-auto h-16 w-16"
         />
         <h1 className="text-2xl font-bold">Login to your account</h1>

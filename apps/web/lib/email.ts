@@ -53,7 +53,7 @@ function createEmailTemplate(content: string): string {
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>MultiNotes</title>
+      <title>lucide note</title>
       <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
@@ -225,9 +225,9 @@ function createEmailTemplate(content: string): string {
         <div class="email-container">
           <div class="header">
             <div class="logo">
-              <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iNyIgeT0iNyIgd2lkdGg9IjEyIiBoZWlnaHQ9IjE0IiByeD0iMiIgZmlsbD0iIzZFRTdCNyIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNCIgcng9IjIiIGZpbGw9IiMzNEQzOTkiLz48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTIiIGhlaWdodD0iMTQiIHJ4PSIyIiBmaWxsPSIjM0I4MkY2Ii8+PC9zdmc+" alt="MultiNotes Logo" />
+              <img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQgMjQiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3QgeD0iNyIgeT0iNyIgd2lkdGg9IjEyIiBoZWlnaHQ9IjE0IiByeD0iMiIgZmlsbD0iIzZFRTdCNyIvPjxyZWN0IHg9IjUiIHk9IjUiIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNCIgcng9IjIiIGZpbGw9IiMzNEQzOTkiLz48cmVjdCB4PSIzIiB5PSIzIiB3aWR0aD0iMTIiIGhlaWdodD0iMTQiIHJ4PSIyIiBmaWxsPSIjM0I4MkY2Ii8+PC9zdmc+" alt="lucide note Logo" />
             </div>
-            <h1>MultiNotes</h1>
+            <h1>lucide note</h1>
             <p>Team collaboration platform</p>
           </div>
 
@@ -236,10 +236,10 @@ function createEmailTemplate(content: string): string {
           </div>
 
           <div class="footer">
-            <p>This email was sent to you because you have an account with MultiNotes.</p>
+            <p>This email was sent to you because you have an account with lucide note.</p>
             <p><a href="${baseUrl}/settings/notifications">Manage notifications</a> | <a href="${baseUrl}/privacy">Privacy Policy</a></p>
             <p style="margin-top: 12px; font-size: 11px; color: #9ca3af;">
-              © 2025 MultiNotes. All rights reserved.
+              © 2025 lucide note. All rights reserved.
             </p>
           </div>
         </div>
@@ -254,7 +254,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
   const content = `
     <h2>Verify your email address</h2>
-    <p>Thank you for creating an account with MultiNotes. To complete your registration, please verify your email address.</p>
+    <p>Thank you for creating an account with lucide note. To complete your registration, please verify your email address.</p>
 
     <div style="text-align: center; margin: 20px 0;">
       <a href="${verificationUrl}" class="action-button">Verify Email Address</a>
@@ -280,7 +280,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 
   return sendEmail({
     to: email,
-    subject: "Verify your MultiNotes account",
+    subject: "Verify your lucide note account",
     htmlContent,
     textContent: `Please verify your email address by visiting: ${verificationUrl}`,
   });
@@ -291,7 +291,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
   const content = `
     <h2>Reset your password</h2>
-    <p>We received a request to reset the password for your MultiNotes account. If you made this request, click the button below to create a new password.</p>
+    <p>We received a request to reset the password for your lucide note account. If you made this request, click the button below to create a new password.</p>
 
     <div style="text-align: center; margin: 32px 0;">
       <a href="${resetUrl}" class="action-button">Reset Password</a>
@@ -317,7 +317,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
 
   return sendEmail({
     to: email,
-    subject: "Reset your MultiNotes password",
+    subject: "Reset your lucide note password",
     htmlContent,
     textContent: `Reset your password by visiting: ${resetUrl}`,
   });
@@ -331,11 +331,11 @@ export async function sendOrganizationInviteEmail(
 ) {
   const content = `
     <h2>You've been invited to join ${organizationName}!</h2>
-    <p><strong>${inviterName}</strong> has invited you to join their team on MultiNotes.</p>
-    <p>MultiNotes is a collaborative note-taking platform that helps teams organize their thoughts, share knowledge, and work together more effectively.</p>
+    <p><strong>${inviterName}</strong> has invited you to join their team on lucide note.</p>
+    <p>lucide note is a collaborative note-taking platform that helps teams organize their thoughts, share knowledge, and work together more effectively.</p>
 
     <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 20px; margin: 20px 0;">
-      <h3 style="color: #0369a1; margin-bottom: 8px;">What you can do with MultiNotes:</h3>
+      <h3 style="color: #0369a1; margin-bottom: 8px;">What you can do with lucide note:</h3>
       <ul style="color: #0369a1; margin: 0; padding-left: 20px;">
         <li>Create and organize notes collaboratively</li>
         <li>Share knowledge with your team</li>
@@ -368,8 +368,8 @@ export async function sendOrganizationInviteEmail(
 
   return sendEmail({
     to: email,
-    subject: `Join ${organizationName} on MultiNotes`,
+    subject: `Join ${organizationName} on lucide note`,
     htmlContent,
-    textContent: `${inviterName} invited you to join ${organizationName} on MultiNotes. Accept the invitation: ${inviteUrl}`,
+    textContent: `${inviterName} invited you to join ${organizationName} on lucide note. Accept the invitation: ${inviteUrl}`,
   });
 }

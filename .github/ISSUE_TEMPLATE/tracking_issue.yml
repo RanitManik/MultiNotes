@@ -1,5 +1,5 @@
 name: "📋 Tracking Issue"
-description: For tracking a large body of work in MultiNotes
+description: For tracking a large body of work in lucide note
 title: "[Tracking]: "
 labels: ["tracking", "epic"]
 assignees: []
@@ -9,7 +9,7 @@ body:
       value: |
         ## 📋 Tracking Issue
 
-        Use this issue to coordinate a large project, epic, or multi-step initiative in MultiNotes.
+        Use this issue to coordinate a large project, epic, or multi-step initiative in lucide note.
 
         Guidelines:
         - Break work into clear, shippable milestones

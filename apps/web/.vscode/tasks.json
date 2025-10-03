@@ -4,7 +4,7 @@
     {
       "label": "Run register tests",
       "type": "shell",
-      "command": "cd /Users/ranitmanik/code/MultiNotes/apps/web && npm test -- __tests__/register.test.ts"
+      "command": "cd ${workspaceFolder} && npm test -- __tests__/register.test.ts"
     }
   ]
 }

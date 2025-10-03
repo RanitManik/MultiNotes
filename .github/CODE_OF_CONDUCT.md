@@ -1,6 +1,6 @@
-# Code of Conduct for MultiNotes
+# Code of Conduct for lucide note
 
-MultiNotes is an open source project maintained by RanitManik. We want contributors, users, and community members to feel safe and welcome. This Code of Conduct explains our expectations for participant behavior and the steps maintainers will take to address unacceptable behavior.
+lucide note is an open source project maintained by RanitManik. We want contributors, users, and community members to feel safe and welcome. This Code of Conduct explains our expectations for participant behavior and the steps maintainers will take to address unacceptable behavior.
 
 ## Our Standards
 
@@ -40,10 +40,10 @@ When possible, maintainers will aim for consistency and transparency in enforcem
 
 ## Scope
 
-This Code of Conduct applies to all project spaces (issues, pull requests, discussions, chat channels, in-person events when representing MultiNotes, etc.).
+This Code of Conduct applies to all project spaces (issues, pull requests, discussions, chat channels, in-person events when representing lucide note, etc.).
 
 ## Attribution
 
-This document is adapted from the Contributor Covenant version 2.0 and modified for the MultiNotes project.
+This document is adapted from the Contributor Covenant version 2.0 and modified for the lucide note project.
 
 For the full Contributor Covenant and translations, see [https://www.contributor-covenant.org](https://www.contributor-covenant.org)

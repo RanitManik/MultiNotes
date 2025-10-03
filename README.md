@@ -1,4 +1,4 @@
-# MultiNotes
+# lucide note
 
 A production-ready multi-tenant notes application with role-based access control, subscription management, and comprehensive testing.
 
@@ -6,12 +6,12 @@ A production-ready multi-tenant notes application with role-based access control
 > **⚠️ Learning Project Notice**: This repository is a personal learning project and proof-of-concept. It is not intended for commercial use in real-world production systems without further hardening. Use it for learning, experimentation, and reference purposes.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/ci.yml)
-[![CodeQL](https://github.com/RanitManik/MultiNotes/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/github-code-scanning/codeql)
-[![Dependabot Updates](https://github.com/RanitManik/MultiNotes/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/RanitManik/MultiNotes/actions/workflows/dependabot/dependabot-updates)
+[![CI](https://github.com/RanitManik/lucide-note/actions/workflows/ci.yml/badge.svg)](https://github.com/RanitManik/lucide-note/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/RanitManik/lucide-note/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/RanitManik/lucide-note/actions/workflows/github-code-scanning/codeql)
+[![Dependabot Updates](https://github.com/RanitManik/lucide-note/actions/workflows/dependabot/dependabot-updates/badge.svg)](https://github.com/RanitManik/lucide-note/actions/workflows/dependabot/dependabot-updates)
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen)](https://nodejs.org/)
 [![pnpm](https://img.shields.io/badge/pnpm-10.4.1-blue)](https://pnpm.io/)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit-blue)](http://multinotes.5dev.in)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Visit-blue)](https://lucide.5dev.in)
 
 ## 📑 Table of Contents
 
@@ -70,8 +70,8 @@ Ensure you have the following installed:
 1. **Clone the repository:**
 
 ```bash
-git clone https://github.com/RanitManik/MultiNotes.git
-cd MultiNotes
+git clone https://github.com/RanitManik/lucide-note.git
+cd lucide-note
 ```
 
 2. **Install dependencies:**
@@ -109,7 +109,7 @@ GITHUB_CLIENT_SECRET="your-github-client-secret"
 # Email (Brevo)
 BREVO_API_KEY="your-brevo-api-key-here"
 BREVO_FROM_EMAIL="noreply@yourdomain.com"
-BREVO_FROM_NAME="MultiNotes"
+BREVO_FROM_NAME="lucide note"
 ```
 
 2. **Run database migrations:**

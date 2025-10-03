@@ -36,27 +36,24 @@ export const registerSchema = z.object({
 
 export const forgotPasswordSchema = z.object({
   email: z
-    .string()
+    .string({ required_error: "Email is required" })
     .min(1, "Email is required")
     .email("Please enter a valid email address"),
 });
 
 export const resetPasswordSchema = z
   .object({
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .regex(
-        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-        "Password must contain at least one uppercase letter, one lowercase letter, and one number"
-      ),
-    confirmPassword: z.string(),
-    token: z.string().min(1, "Reset token is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string().optional(),
+    token: z.string().min(1, "Token and password are required"),
   })
-  .refine(data => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+  .refine(
+    data => !data.confirmPassword || data.password === data.confirmPassword,
+    {
+      message: "Passwords don't match",
+      path: ["confirmPassword"],
+    }
+  );
 
 export const organizationSchema = z.object({
   name: z
@@ -75,27 +72,58 @@ export const organizationSchema = z.object({
 
 export const createOrganizationSchema = z.object({
   name: z
-    .string()
+    .string({ required_error: "Organization name is required" })
     .min(1, "Organization name is required")
     .max(100, "Organization name must be less than 100 characters"),
 });
 
 // API validation schemas
-export const createNoteSchema = z.object({
+const baseNoteSchema = z.object({
   title: z
     .string()
-    .min(1, "Title is required")
-    .max(200, "Title must be less than 200 characters"),
-  content: z.any(), // TipTap content is validated on the client
+    .max(200, "Title must be less than 200 characters")
+    .optional(),
+  content: z.any().optional(),
 });
 
-export const updateNoteSchema = createNoteSchema.partial();
+export const createNoteSchema = baseNoteSchema.refine(
+  data => data.title && data.content,
+  {
+    message: "Title and content required",
+    path: ["title"], // This will make the error appear on the title field
+  }
+);
+
+export const updateNoteSchema = baseNoteSchema.refine(
+  data => data.title && data.content,
+  {
+    message: "Title and content required",
+    path: ["title"],
+  }
+);
+
+export const inviteEmailsSchema = z.object({
+  emails: z
+    .array(z.string().email("Invalid email format"), {
+      required_error: "At least one email is required",
+    })
+    .min(1, "At least one email is required")
+    .max(50, "Cannot invite more than 50 users at once"),
+});
 
 export const inviteUserSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  role: z.enum(["admin", "member"], {
-    errorMap: () => ({ message: "Role must be either 'admin' or 'member'" }),
-  }),
+  email: z
+    .string({ required_error: "Email and role required" })
+    .email("Please enter a valid email address"),
+  role: z
+    .string({ required_error: "Email and role required" })
+    .refine(val => ["admin", "member"].includes(val), {
+      message: "Invalid role. Must be 'admin' or 'member'",
+    }),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
@@ -107,3 +135,4 @@ export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;
 export type InviteUserInput = z.infer<typeof inviteUserSchema>;
+export type InviteEmailsInput = z.infer<typeof inviteEmailsSchema>;

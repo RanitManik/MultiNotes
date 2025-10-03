@@ -2,14 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendPasswordResetEmail } from "@/lib/email";
 import { randomBytes } from "crypto";
+import { forgotPasswordSchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email } = await request.json();
+    const body = await request.json();
 
-    if (!email) {
-      return NextResponse.json({ error: "Email is required" }, { status: 400 });
+    // Validate input with Zod
+    const validationResult = forgotPasswordSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errorMessage =
+        validationResult.error.issues[0]?.message || "Validation failed";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
+
+    const { email } = validationResult.data;
 
     // Check if user exists
     const user = await prisma.user.findUnique({

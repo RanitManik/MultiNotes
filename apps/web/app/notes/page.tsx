@@ -73,9 +73,6 @@ import {
   createNoteSchema,
   updateNoteSchema,
   inviteUserSchema,
-  type CreateNoteInput,
-  type UpdateNoteInput,
-  type InviteUserInput,
 } from "@/lib/validations";
 
 // Utility functions
@@ -178,7 +175,8 @@ function NotesDashboardContent() {
   const [inviteError, setInviteError] = useState("");
   const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [error, setError] = useState("");
+  const [createNoteError, setCreateNoteError] = useState("");
+  const [editNoteError, setEditNoteError] = useState("");
 
   // Function to update a note in the local notes array
   const updateNoteInList = (noteId: string, updates: Partial<Note>) => {
@@ -310,7 +308,7 @@ function NotesDashboardContent() {
       });
 
       if (!validationResult.success) {
-        setError(
+        setCreateNoteError(
           validationResult.error.issues?.[0]?.message || "Validation failed"
         );
         return;
@@ -318,14 +316,14 @@ function NotesDashboardContent() {
 
       const validatedData = validationResult.data;
       const noteData = {
-        title: validatedData.title,
+        title: validatedData.title!,
         content: validatedData.content,
       };
 
       // Close dialog and clear form immediately for optimistic UX
       setShowCreateForm(false);
       setNewTitle("");
-      setError("");
+      setCreateNoteError("");
 
       try {
         await toast.promise(createNoteMutation.mutateAsync(noteData), {
@@ -362,7 +360,7 @@ function NotesDashboardContent() {
       handleSelectNote,
       setShowCreateForm,
       setNewTitle,
-      setError,
+      setCreateNoteError,
       setIsSheetOpen,
     ]
   );
@@ -370,6 +368,7 @@ function NotesDashboardContent() {
   const handleEditNote = useCallback((note: Note) => {
     setEditingNote(note);
     setEditTitle(note.title);
+    setEditNoteError("");
     setShowEditForm(true);
   }, []);
 
@@ -385,7 +384,7 @@ function NotesDashboardContent() {
       });
 
       if (!validationResult.success) {
-        setError(
+        setEditNoteError(
           validationResult.error.issues?.[0]?.message || "Validation failed"
         );
         return;
@@ -401,7 +400,7 @@ function NotesDashboardContent() {
       setShowEditForm(false);
       setEditingNote(null);
       setEditTitle("");
-      setError("");
+      setEditNoteError("");
 
       try {
         await toast.promise(
@@ -430,7 +429,7 @@ function NotesDashboardContent() {
       setShowEditForm,
       setEditingNote,
       setEditTitle,
-      setError,
+      setEditNoteError,
       updateNoteInList,
     ]
   );
@@ -447,7 +446,9 @@ function NotesDashboardContent() {
         success: "Note deleted successfully",
         error: "Failed to delete note",
       });
-      const remaining = (notes || []).filter((n: any) => n.id !== deleteNoteId);
+      const remaining = (notes || []).filter(
+        (n: Note) => n.id !== deleteNoteId
+      );
       setSelectedId(remaining[0]?.id || null);
 
       // Update URL with the new selected note or remove param if none
@@ -487,7 +488,7 @@ function NotesDashboardContent() {
       try {
         const result = await inviteUserMutation.mutateAsync({
           email: validatedData.email,
-          role: validatedData.role,
+          role: validatedData.role as "admin" | "member",
           password: invitePassword || undefined,
         });
 
@@ -606,15 +607,24 @@ function NotesDashboardContent() {
     confettiTimers,
   ]);
 
-  // Clean up confetti timers when component unmounts
+  // Clear errors when dialogs close
   useEffect(() => {
-    return () => {
-      if (confettiTimers.current.fade)
-        clearTimeout(confettiTimers.current.fade);
-      if (confettiTimers.current.hide)
-        clearTimeout(confettiTimers.current.hide);
-    };
-  }, []);
+    if (!showCreateForm) {
+      setCreateNoteError("");
+    }
+  }, [showCreateForm]);
+
+  useEffect(() => {
+    if (!showEditForm) {
+      setEditNoteError("");
+    }
+  }, [showEditForm]);
+
+  useEffect(() => {
+    if (!showInviteForm) {
+      setInviteError("");
+    }
+  }, [showInviteForm]);
 
   return (
     <React.Suspense fallback={<div>Loading...</div>}>
@@ -669,6 +679,12 @@ function NotesDashboardContent() {
                 onChange={e => setNewTitle(e.target.value)}
               />
             </div>
+            {createNoteError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{createNoteError}</AlertDescription>
+              </Alert>
+            )}
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
@@ -710,6 +726,12 @@ function NotesDashboardContent() {
                 onChange={e => setEditTitle(e.target.value)}
               />
             </div>
+            {editNoteError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{editNoteError}</AlertDescription>
+              </Alert>
+            )}
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
@@ -872,14 +894,6 @@ function NotesDashboardContent() {
             </form>
           </DialogContent>
         </Dialog>
-      )}
-
-      {/* Error Alert */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertTriangle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
       )}
 
       <div className="flex h-svh w-full overflow-hidden">

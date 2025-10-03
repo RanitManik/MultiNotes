@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { createNoteSchema } from "@/lib/validations";
 
 export async function GET(request: NextRequest) {
   const session = await auth();
@@ -32,14 +33,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { title, content } = await request.json();
+    const body = await request.json();
 
-    if (!title || !content) {
-      return NextResponse.json(
-        { error: "Title and content required" },
-        { status: 400 }
-      );
+    // Validate input with Zod
+    const validationResult = createNoteSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errorMessage =
+        validationResult.error.issues[0]?.message || "Validation failed";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
+
+    const { title, content } = validationResult.data;
 
     // Check subscription limit
     const tenant = await prisma.tenant.findUnique({
@@ -65,7 +69,7 @@ export async function POST(request: NextRequest) {
 
     const note = await prisma.note.create({
       data: {
-        title,
+        title: title ?? "",
         content,
         tenant_id: session.user.tenantId,
         author_id: session.user.id,

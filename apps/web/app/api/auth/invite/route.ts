@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { sendOrganizationInviteEmail } from "@/lib/email";
 import { randomBytes } from "crypto";
+import { inviteUserSchema } from "@/lib/validations";
 
 function generateRandomPassword(): string {
   const chars =
@@ -29,21 +30,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { email, role, password } = await request.json();
+    const body = await request.json();
+    const validation = inviteUserSchema.safeParse(body);
 
-    if (!email || !role) {
-      return NextResponse.json(
-        { error: "Email and role required" },
-        { status: 400 }
-      );
+    if (!validation.success) {
+      const errorMessage =
+        validation.error.issues[0]?.message || "Validation failed";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    if (!["admin", "member"].includes(role)) {
-      return NextResponse.json(
-        { error: "Invalid role. Must be 'admin' or 'member'" },
-        { status: 400 }
-      );
-    }
+    const { email, role, password } = validation.data;
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({

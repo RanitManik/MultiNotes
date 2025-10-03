@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { sendOrganizationInviteEmail } from "@/lib/email";
-import { randomBytes } from "crypto";
+import { inviteEmailsSchema } from "@/lib/validations";
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,14 +12,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { emails } = await request.json();
+    const body = await request.json();
 
-    if (!Array.isArray(emails) || emails.length === 0) {
-      return NextResponse.json(
-        { error: "At least one email is required" },
-        { status: 400 }
-      );
+    // Validate input with Zod
+    const validationResult = inviteEmailsSchema.safeParse(body);
+    if (!validationResult.success) {
+      const errorMessage =
+        validationResult.error.issues[0]?.message || "Validation failed";
+      return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
+
+    const { emails } = validationResult.data;
 
     // Get user with tenant
     const user = await prisma.user.findUnique({
@@ -34,16 +37,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const results = [];
+    const results: any[] = [];
 
     for (const email of emails) {
-      if (!email || typeof email !== "string") continue;
-
       const trimmedEmail = email.trim().toLowerCase();
-
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(trimmedEmail)) continue;
 
       // Check if user already exists
       const existingUser = await prisma.user.findUnique({

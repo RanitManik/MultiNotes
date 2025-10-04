@@ -1,3 +1,5 @@
+<img width="100" src="https://raw.githubusercontent.com/RanitManik/lucide-note/refs/heads/main/apps/web/public/favicon/web-app-manifest-192x192.png" alt="Lucide Note Logo" />
+
 # lucide note
 
 A production-ready multi-tenant notes application with role-based access control, subscription management, and comprehensive testing.

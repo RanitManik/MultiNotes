@@ -1,4 +1,4 @@
-<img width="100" src="https://raw.githubusercontent.com/RanitManik/lucide-note/refs/heads/main/apps/web/public/favicon/web-app-manifest-192x192.png" alt="Lucide Note Logo" />
+<img width="100" src="https://raw.githubusercontent.com/RanitManik/lucide-note/refs/heads/main/apps/web/public/logo.svg" alt="Lucide Note Logo" />
 
 # lucide note
 

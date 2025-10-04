@@ -138,7 +138,7 @@ export default function OrganizationSetupPage() {
         <div className="animate-fade-up animate-duration-500 z-10 w-full max-w-md">
           <div className="flex flex-col gap-6">
             <div className="flex flex-col items-center gap-6 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-500">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-500">
                 <CheckCircle className="h-10 w-10 text-white" />
               </div>
 
@@ -191,7 +191,7 @@ export default function OrganizationSetupPage() {
             <img
               src="/logo.svg"
               alt="lucide note Logo"
-              className="mx-auto h-16 w-16"
+              className="mx-auto h-12 w-12"
             />
             <h1 className="text-2xl font-bold">Create Your Organization</h1>
             <p className="text-muted-foreground text-balance text-sm">

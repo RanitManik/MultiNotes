@@ -51,7 +51,7 @@ export function RegisterForm({
         <img
           src="/logo.svg"
           alt="lucide note Logo"
-          className="mx-auto h-16 w-16"
+          className="mx-auto h-12 w-12"
         />
         <h1 className="text-2xl font-bold">Create your account</h1>
         <p className="text-muted-foreground text-balance text-sm">

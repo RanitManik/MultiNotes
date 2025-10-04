@@ -44,8 +44,8 @@ export default function LandingPage() {
               <Image
                 src="/logo.svg"
                 alt="lucide note Logo"
-                width={40}
-                height={40}
+                width={24}
+                height={24}
               />
             </div>
             <span className="from-primary bg-gradient-to-r to-blue-600 bg-clip-text text-xl font-bold text-transparent md:text-2xl">
@@ -211,7 +211,7 @@ export default function LandingPage() {
             <div className="animate-fade-up group">
               <Card className="from-card to-card/50 hover:shadow-primary/10 h-full border-0 bg-gradient-to-br backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 group-hover:shadow-xl">
                 <CardHeader className="flex-1 text-center md:text-left">
-                  <div className="from-primary/20 mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br to-blue-600/20 transition-transform duration-300 group-hover:scale-105 md:mx-0">
+                  <div className="from-primary/20 mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br to-blue-600/20 transition-transform duration-300 group-hover:scale-105 md:mx-0">
                     <FileText className="text-primary h-8 w-8 group-hover:animate-pulse" />
                   </div>
                   <CardTitle className="mb-2 text-xl md:text-2xl">
@@ -231,7 +231,7 @@ export default function LandingPage() {
             >
               <Card className="from-card to-card/50 h-full border-0 bg-gradient-to-br backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-green-500/10 group-hover:shadow-xl">
                 <CardHeader className="flex-1 text-center md:text-left">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-600/20 transition-transform duration-300 group-hover:scale-105 md:mx-0">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-600/20 transition-transform duration-300 group-hover:scale-105 md:mx-0">
                     <Users className="h-8 w-8 text-green-600 group-hover:animate-pulse" />
                   </div>
                   <CardTitle className="mb-2 text-xl md:text-2xl">
@@ -252,7 +252,7 @@ export default function LandingPage() {
             >
               <Card className="from-card to-card/50 h-full border-0 bg-gradient-to-br backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:shadow-purple-500/10 group-hover:shadow-xl">
                 <CardHeader className="flex-1 text-center">
-                  <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 transition-transform duration-300 group-hover:scale-105">
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-600/20 transition-transform duration-300 group-hover:scale-105">
                     <Shield className="h-8 w-8 text-purple-600 group-hover:animate-pulse" />
                   </div>
                   <CardTitle className="mb-2 text-xl md:text-2xl">
